@@ -9,6 +9,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pastellife.app.data.*
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
+
+private fun transferMoney(value: Long) = "PKR " + NumberFormat.getNumberInstance(Locale("en", "PK")).format(value)
 
 @Composable
 fun TransferManager(dao: AppDao) {
