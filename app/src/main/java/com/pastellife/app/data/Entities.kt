@@ -66,3 +66,13 @@ data class DebtPaymentEntity(
     val note: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
+
+@Entity(tableName = "savings_goals")
+data class SavingsGoalEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val targetAmount: Long,
+    val currentAmount: Long = 0,
+    val dueDate: String = "",
+    val note: String = ""
+)
