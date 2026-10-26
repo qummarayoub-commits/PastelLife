@@ -140,7 +140,7 @@ class MainActivity:ComponentActivity(){
         TextButton(onClick={attachmentTaskId=t.id;attachmentPicker.launch(arrayOf("*/*"))}){Text("Attach file")}
         attachments.filter{it.taskId==t.id}.forEach{att->
          Row(verticalAlignment=Alignment.CenterVertically){
-          TextButton(onClick={runCatching{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(att.uri)).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))}.onFailure{message="Could not open attachment."}}){Text(att.displayName,maxLines=1)}
+          TextButton(onClick={runCatching{val fileUri=Uri.parse(att.uri);val mime=context.contentResolver.getType(fileUri) ?: "*/*";context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(fileUri,mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))}.onFailure{message="Could not open attachment."}}){Text(att.displayName,maxLines=1)}
           TextButton(onClick={scope.launch{dao.deleteTaskAttachment(att.id)}}){Text("Remove")}
          }
         }
