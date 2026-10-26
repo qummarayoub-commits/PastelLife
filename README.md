@@ -1,23 +1,27 @@
 # PastelLife
 
-PastelLife is an Android personal task and finance manager starter. It uses Kotlin, Jetpack Compose and Room for offline-first local storage.
+PastelLife is an early Android personal task and finance manager built with Kotlin, Jetpack Compose, Room and WorkManager.
 
-## Current working foundation
-- Pastel dashboard with available account balance, net savings and net financial position
-- Persistent tasks: add, complete, reopen and delete
+## Implemented in the current starter
+- Pastel dashboard with available account balance and net financial position
+- Persistent tasks with due-date text, daily/weekly recurrence and start/stop time tracking
+- Daily unfinished-task reminder scheduled for approximately 9 AM local time (Android may defer background work; notifications require permission)
 - Multiple accounts with manually entered opening balances
-- Income and expense entries with transaction history
-- Transfers between accounts, kept separate from income/expenses
+- Income and expense transactions with history
+- Transfers between own accounts, excluded from income/expense totals
 - Contacts
 - Receivables and payables linked to contacts
-- Partial repayments, remaining balances and payment history
-- Daily unfinished-task notification scheduled for approximately 9 AM local time (Android may delay background work; notifications require permission)
+- Partial and full repayments with payment history
+- Savings goals, target dates, progress and contributions
+- Weekly and monthly income/expense/net savings summaries
+- JSON export and restore of local app data, with confirmation before replacing data
+- Room migrations for new task fields and savings goals
 
-## Important limitations
-- Data is stored locally on this device; cloud login/sync and attachments are not connected yet.
-- Recurring task rules, task-specific due-date reminders, calendar view, time tracking, savings goals and weekly/monthly chart views remain to be built.
-- This is an early development build, not a production-ready financial application. Backups, account transfers and debt payment sequences need more automated tests before relying on it for important records.
-- A debug APK is only considered available after GitHub Actions reports a successful build and the artifact is verified.
+## Still to build / verify
+- Cloud login and sync are not connected; no Firebase project configuration is included.
+- Calendar screen, task-specific scheduled reminders, attachments, time charts and advanced filtering remain unfinished.
+- This is not production-ready. The code still needs a successful automated build, device testing, data-integrity tests and security review.
+- Debug APK availability is only confirmed after GitHub Actions succeeds and the artifact is checked.
 
 ## Build
-Open the repository in Android Studio or run the GitHub Actions workflow from the Actions tab. The workflow is configured to build `app-debug.apk` and upload it as an artifact.
+Open the repository in Android Studio, or visit the Actions tab and inspect the latest “Build Android APK” run. A successful run uploads app-debug.apk as an artifact.
