@@ -48,10 +48,7 @@ fun TransferManager(dao: AppDao) {
                 if (from == null || to == null || from.id == to.id || amount == null || amount <= 0L) status = "Choose two different accounts and enter a valid amount."
                 else if (from.currentBalance < amount) status = "The source account has insufficient balance."
                 else scope.launch {
-                    dao.addTransaction(TransactionEntity(accountId = from.id, amount = amount, type = "Transfer", category = "Transfer to " + to.name))
-                    dao.addTransaction(TransactionEntity(accountId = to.id, amount = amount, type = "Transfer", category = "Transfer from " + from.name))
-                    dao.updateAccount(from.copy(currentBalance = from.currentBalance - amount))
-                    dao.updateAccount(to.copy(currentBalance = to.currentBalance + amount))
+                    dao.recordTransfer(from, to, amount)
                     amountText = ""; status = "Transfer saved."
                 }
             }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) { Text("Transfer") }
