@@ -1,5 +1,6 @@
 package com.pastellife.app.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,8 +12,8 @@ data class TaskEntity(
     val kind: String = "Personal",
     val priority: String = "Medium",
     val dueDate: String = "",
-    val repeatRule: String = "None",
-    val trackedSeconds: Long = 0,
+    @ColumnInfo(defaultValue = "'None'") val repeatRule: String = "None",
+    @ColumnInfo(defaultValue = "0") val trackedSeconds: Long = 0,
     val timerStartedAt: Long? = null,
     val notes: String = "",
     val createdAt: Long = System.currentTimeMillis()
