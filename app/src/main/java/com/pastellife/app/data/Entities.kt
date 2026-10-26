@@ -77,3 +77,12 @@ data class SavingsGoalEntity(
     val dueDate: String = "",
     val note: String = ""
 )
+
+@Entity(tableName = "task_attachments")
+data class TaskAttachmentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val taskId: Long,
+    val uri: String,
+    val displayName: String,
+    val addedAt: Long = System.currentTimeMillis()
+)
