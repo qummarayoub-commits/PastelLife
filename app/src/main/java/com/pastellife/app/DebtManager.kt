@@ -104,7 +104,7 @@ fun DebtManager(dao: AppDao) {
                         }
                         DropdownMenu(expanded = paymentMenu, onDismissRequest = { paymentMenu = false }) {
                             debts.filter { it.remainingAmount > 0L }.forEach { d0 ->
-                                DropdownMenuItem(text = { Text((contacts.firstOrNull { it.id == d0.contactId }?.name ?: "Contact") + " — " + money(d0.remainingAmount)) }, onClick = { paymentDebtId = d0.id; paymentMenu = false })
+                                DropdownMenuItem(text = { Text((contacts.firstOrNull { it.id == d0.contactId }?.name ?: "Contact") + " — " + debtMoney(d0.remainingAmount)) }, onClick = { paymentDebtId = d0.id; paymentMenu = false })
                             }
                         }
                     }
