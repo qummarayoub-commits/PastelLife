@@ -125,7 +125,7 @@ class MainActivity:ComponentActivity(){
       Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Low","Medium","High").forEach{priority->FilterChip(selected=taskPriority==priority,onClick={taskPriority=priority},label={Text(priority)})}}
       Text("Repeat",color=Ink,fontWeight=FontWeight.Medium)
       Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("None","Daily","Weekly").forEach{rule->FilterChip(selected=repeatRule==rule,onClick={repeatRule=rule},label={Text(rule)})}}
-      Button(onClick={if(task.isNotBlank()){val title=task.trim();scope.launch{dao.addTask(TaskEntity(title=title,kind=taskKind,priority=taskPriority,dueDate=taskDueDate.trim(),repeatRule=repeatRule,notes=taskNotes.trim(),projectName=projectName.trim().ifBlank{null}));task="";taskNotes="";projectName="";taskDueDate="";repeatRule="None";taskKind="Personal";taskPriority="Medium";message="Task saved on this device."}}else message="Enter a task first."},modifier=Modifier.fillMaxWidth()){Text("Add task")}
+      Button(onClick={if(task.isNotBlank()){val title=task.trim();scope.launch{dao.addTask(TaskEntity(title=title,kind=taskKind,priority=taskPriority,dueDate=taskDueDate.trim(),repeatRule=repeatRule,notes=taskNotes.trim(),projectName=if(taskKind=="Project") projectName.trim().ifBlank{null} else null));task="";taskNotes="";projectName="";taskDueDate="";repeatRule="None";taskKind="Personal";taskPriority="Medium";message="Task saved on this device."}}else message="Enter a task first."},modifier=Modifier.fillMaxWidth()){Text("Add task")}
      }}
      if(tasks.isEmpty())item{Hint("Your task list is empty.")}
      items(tasks,key={it.id}){t->Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
