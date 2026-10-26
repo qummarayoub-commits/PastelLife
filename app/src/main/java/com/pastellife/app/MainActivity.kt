@@ -72,7 +72,6 @@ class MainActivity:ComponentActivity(){
   }
  }
  LaunchedEffect(Unit){
-  if(dao.countAccounts()==0) dao.addAccount(AccountEntity(name="Cash",openingBalance=0))
   if(Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
   }
