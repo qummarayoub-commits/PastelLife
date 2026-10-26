@@ -22,6 +22,20 @@ interface AppDao {
     @Insert suspend fun addAccount(account: AccountEntity): Long
     @Update suspend fun updateAccount(account: AccountEntity)
 
+    @Transaction
+    suspend fun recordTransactionAndBalance(transaction: TransactionEntity, updatedAccount: AccountEntity) {
+        addTransaction(transaction)
+        updateAccount(updatedAccount)
+    }
+
+    @Transaction
+    suspend fun recordTransfer(fromAccount: AccountEntity, toAccount: AccountEntity, amount: Long) {
+        addTransaction(TransactionEntity(accountId = fromAccount.id, amount = amount, type = "Transfer", category = "Transfer to " + toAccount.name))
+        addTransaction(TransactionEntity(accountId = toAccount.id, amount = amount, type = "Transfer", category = "Transfer from " + fromAccount.name))
+        updateAccount(fromAccount.copy(currentBalance = fromAccount.currentBalance - amount))
+        updateAccount(toAccount.copy(currentBalance = toAccount.currentBalance + amount))
+    }
+
     @Query("SELECT * FROM transactions ORDER BY createdAt DESC")
     fun observeTransactions(): Flow<List<TransactionEntity>>
     @Insert suspend fun addTransaction(transaction: TransactionEntity): Long
@@ -34,6 +48,12 @@ interface AppDao {
     fun observeDebts(): Flow<List<DebtEntity>>
     @Insert suspend fun addDebt(debt: DebtEntity): Long
     @Update suspend fun updateDebt(debt: DebtEntity)
+
+    @Transaction
+    suspend fun recordDebtPaymentAndBalance(payment: DebtPaymentEntity, updatedDebt: DebtEntity) {
+        addDebtPayment(payment)
+        updateDebt(updatedDebt)
+    }
 
     @Query("SELECT * FROM debt_payments WHERE debtId = :debtId ORDER BY createdAt DESC")
     fun observePayments(debtId: Long): Flow<List<DebtPaymentEntity>>
