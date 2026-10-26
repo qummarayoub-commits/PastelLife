@@ -54,7 +54,7 @@ class MainActivity:ComponentActivity(){
  val contacts by dao.observeContacts().collectAsState(initial= emptyList())
  val attachments by dao.observeTaskAttachments().collectAsState(initial= emptyList())
  val debts by dao.observeDebts().collectAsState(initial= emptyList())
- var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }; var taskNotes by remember { mutableStateOf("") }; var taskDueDate by remember { mutableStateOf("") }; var repeatRule by remember { mutableStateOf("None") }; var taskKind by remember { mutableStateOf("Personal") }; var taskPriority by remember { mutableStateOf("Medium") }
+ var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }; var taskNotes by remember { mutableStateOf("") }; var projectName by remember { mutableStateOf("") }; var taskDueDate by remember { mutableStateOf("") }; var repeatRule by remember { mutableStateOf("None") }; var taskKind by remember { mutableStateOf("Personal") }; var taskPriority by remember { mutableStateOf("Medium") }
  var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var accountType by remember { mutableStateOf("Cash") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
@@ -117,6 +117,7 @@ class MainActivity:ComponentActivity(){
      item{Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
       OutlinedTextField(value=task,onValueChange={task=it},modifier=Modifier.fillMaxWidth(),label={Text("What do you need to do?")},singleLine=true,shape=RoundedCornerShape(18.dp))
       OutlinedTextField(value=taskNotes,onValueChange={taskNotes=it},modifier=Modifier.fillMaxWidth(),label={Text("Notes (optional)")},minLines=2)
+      if(taskKind=="Project") OutlinedTextField(value=projectName,onValueChange={projectName=it},modifier=Modifier.fillMaxWidth(),label={Text("Project name")},singleLine=true)
       OutlinedTextField(value=taskDueDate,onValueChange={taskDueDate=it},modifier=Modifier.fillMaxWidth(),label={Text("Due date (YYYY-MM-DD, optional)")},singleLine=true)
       Text("Category",color=Ink,fontWeight=FontWeight.Medium)
       Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Personal","Work","Project").forEach{kind->FilterChip(selected=taskKind==kind,onClick={taskKind=kind},label={Text(kind)})}}
@@ -124,7 +125,7 @@ class MainActivity:ComponentActivity(){
       Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Low","Medium","High").forEach{priority->FilterChip(selected=taskPriority==priority,onClick={taskPriority=priority},label={Text(priority)})}}
       Text("Repeat",color=Ink,fontWeight=FontWeight.Medium)
       Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("None","Daily","Weekly").forEach{rule->FilterChip(selected=repeatRule==rule,onClick={repeatRule=rule},label={Text(rule)})}}
-      Button(onClick={if(task.isNotBlank()){val title=task.trim();scope.launch{dao.addTask(TaskEntity(title=title,kind=taskKind,priority=taskPriority,dueDate=taskDueDate.trim(),repeatRule=repeatRule,notes=taskNotes.trim()));task="";taskNotes="";taskDueDate="";repeatRule="None";taskKind="Personal";taskPriority="Medium";message="Task saved on this device."}}else message="Enter a task first."},modifier=Modifier.fillMaxWidth()){Text("Add task")}
+      Button(onClick={if(task.isNotBlank()){val title=task.trim();scope.launch{dao.addTask(TaskEntity(title=title,kind=taskKind,priority=taskPriority,dueDate=taskDueDate.trim(),repeatRule=repeatRule,notes=taskNotes.trim(),projectName=projectName.trim().ifBlank{null}));task="";taskNotes="";projectName="";taskDueDate="";repeatRule="None";taskKind="Personal";taskPriority="Medium";message="Task saved on this device."}}else message="Enter a task first."},modifier=Modifier.fillMaxWidth()){Text("Add task")}
      }}
      if(tasks.isEmpty())item{Hint("Your task list is empty.")}
      items(tasks,key={it.id}){t->Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
@@ -133,7 +134,7 @@ class MainActivity:ComponentActivity(){
         Text(t.title,color=Ink,fontWeight=FontWeight.Medium)
         if(t.notes.isNotBlank()) Text(t.notes,fontSize=12.sp,color=Ink.copy(alpha=.65f))
         Text(if(t.isDone)"Completed" else "To do",fontSize=12.sp,color=Ink.copy(alpha=.6f))
-        Text(t.kind+" • "+t.priority+" priority",fontSize=12.sp,color=Ink.copy(alpha=.65f))
+        Text(t.kind+" • "+t.priority+" priority"+(t.projectName?.let{" • "+it} ?: ""),fontSize=12.sp,color=Ink.copy(alpha=.65f))
         if(t.dueDate.isNotBlank()) Text("Due: "+t.dueDate,fontSize=12.sp,color=Ink.copy(alpha=.6f))
         Text(if(t.timerStartedAt!=null) "Timer running • tracked "+durationLabel(t.trackedSeconds) else "Tracked: "+durationLabel(t.trackedSeconds),fontSize=12.sp,color=Ink.copy(alpha=.7f))
         TextButton(onClick={attachmentTaskId=t.id;attachmentPicker.launch(arrayOf("*/*"))}){Text("Attach file")}
