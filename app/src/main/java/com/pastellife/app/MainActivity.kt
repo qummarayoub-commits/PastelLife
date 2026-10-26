@@ -112,7 +112,7 @@ class MainActivity:ComponentActivity(){
      items(tasks.filter{!it.isDone}.take(5),key={it.id}){t->TaskLine(t.title){scope.launch{completeTaskAndRepeat(context,dao,t)}}}
      item{Text("Recent transactions",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(transactions.isEmpty())item{Hint("Your income and expenses will appear here.")}
-     items(transactions.take(4),key={it.id}){TxLine(it)}
+     items(transactions.take(4),key={it.id}){tx->TxLine(tx,accounts.firstOrNull{account->account.id==tx.accountId}?.name ?: "Account")}
     }
     "Tasks"->{
      item{Text("Your tasks",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
