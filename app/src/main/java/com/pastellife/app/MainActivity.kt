@@ -61,7 +61,7 @@ class MainActivity:ComponentActivity(){
  var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var accountType by remember { mutableStateOf("Cash") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
- var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }; var contactNotes by remember { mutableStateOf("") }
+ var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }; var contactNotes by remember { mutableStateOf("") }; var editingContactId by remember { mutableStateOf<Long?>(null) }; var editContactName by remember { mutableStateOf("") }; var editContactPhone by remember { mutableStateOf("") }; var editContactNotes by remember { mutableStateOf("") }
  var message by remember { mutableStateOf("") }; var attachmentTaskId by remember { mutableStateOf<Long?>(null) }; var editingTaskId by remember { mutableStateOf<Long?>(null) }; var editTaskTitle by remember { mutableStateOf("") }; var editTaskNotes by remember { mutableStateOf("") }; var editTaskDueDate by remember { mutableStateOf("") }
  val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
  val attachmentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -241,7 +241,22 @@ class MainActivity:ComponentActivity(){
       Button(onClick={if(contact.isNotBlank())scope.launch{dao.addContact(ContactEntity(name=contact.trim(),phone=phone.trim(),notes=contactNotes.trim()));contact="";phone="";contactNotes="";message="Contact saved."}else message="Please enter a contact name."},modifier=Modifier.fillMaxWidth()){Text("Save contact")}
      }}
      if(contacts.isEmpty())item{Hint("Add contacts here, then record receivables, payables and partial repayments below.")}
-     items(contacts,key={it.id}){c->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.People,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column{Text(c.name,fontWeight=FontWeight.SemiBold,color=Ink);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.65f));if(c.notes.isNotBlank())Text(c.notes,fontSize=12.sp,color=Ink.copy(alpha=.6f))}}}}
+     items(contacts,key={it.id}){c->
+      Column(verticalArrangement=Arrangement.spacedBy(4.dp)){
+       CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.People,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(c.name,fontWeight=FontWeight.SemiBold,color=Ink);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.65f));if(c.notes.isNotBlank())Text(c.notes,fontSize=12.sp,color=Ink.copy(alpha=.6f))};TextButton(onClick={editingContactId=c.id;editContactName=c.name;editContactPhone=c.phone;editContactNotes=c.notes}){Text("Edit")}}}
+       if(editingContactId==c.id) AlertDialog(
+        onDismissRequest={editingContactId=null},
+        title={Text("Edit contact")},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
+         OutlinedTextField(value=editContactName,onValueChange={editContactName=it},label={Text("Name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+         OutlinedTextField(value=editContactPhone,onValueChange={editContactPhone=it},label={Text("Phone")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+         OutlinedTextField(value=editContactNotes,onValueChange={editContactNotes=it},label={Text("Notes")},modifier=Modifier.fillMaxWidth(),minLines=2)
+        }},
+        confirmButton={TextButton(onClick={val name=editContactName.trim();if(name.isBlank())message="Contact name cannot be empty." else scope.launch{dao.updateContact(c.copy(name=name,phone=editContactPhone.trim(),notes=editContactNotes.trim()));editingContactId=null;message="Contact updated."}}){Text("Save changes")}},
+        dismissButton={TextButton(onClick={editingContactId=null}){Text("Cancel")}}
+       )
+      }
+     }
      item { DebtManager(dao) }
     }
    }
