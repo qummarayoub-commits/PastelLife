@@ -36,4 +36,10 @@ interface AppDao {
     @Query("SELECT * FROM debt_payments WHERE debtId = :debtId ORDER BY createdAt DESC")
     fun observePayments(debtId: Long): Flow<List<DebtPaymentEntity>>
     @Insert suspend fun addDebtPayment(payment: DebtPaymentEntity): Long
+
+    @Query("SELECT * FROM savings_goals ORDER BY id DESC")
+    fun observeSavingsGoals(): Flow<List<SavingsGoalEntity>>
+    @Insert suspend fun addSavingsGoal(goal: SavingsGoalEntity): Long
+    @Update suspend fun updateSavingsGoal(goal: SavingsGoalEntity)
+    @Query("DELETE FROM savings_goals WHERE id = :id") suspend fun deleteSavingsGoal(id: Long)
 }
