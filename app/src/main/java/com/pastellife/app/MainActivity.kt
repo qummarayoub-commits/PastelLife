@@ -97,7 +97,7 @@ class MainActivity:ComponentActivity(){
  Scaffold(containerColor=Canvas,bottomBar={ NavigationBar(containerColor=Color.White){
   listOf("Home","Tasks","Calendar","Finance","Contacts","Reports").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
    Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Calendar"->Icons.Default.DateRange;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;"Reports"->Icons.Default.Assessment;else->Icons.Default.Home},contentDescription=label)
-  },label={Text(label)})}
+  },alwaysShowLabel=false,label={Text(label,fontSize=9.sp,maxLines=1,softWrap=false)})}
  }}){ pad->
   LazyColumn(Modifier.fillMaxSize().padding(pad).padding(horizontal=20.dp),contentPadding=PaddingValues(top=24.dp,bottom=28.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
    item{Surface(color=Color.White,shape=RoundedCornerShape(26.dp),modifier=Modifier.fillMaxWidth(),shadowElevation=2.dp){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){Surface(color=Color(0xFFE4D9FF),shape=RoundedCornerShape(18.dp),modifier=Modifier.size(54.dp)){Box(contentAlignment=Alignment.Center){Icon(Icons.Default.AutoAwesome,null,tint=Color(0xFF7655B7),modifier=Modifier.size(29.dp))}};Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){Text("PastelLife",fontSize=26.sp,fontWeight=FontWeight.ExtraBold,color=Ink);Text("Your life, beautifully organised.",fontSize=13.sp,color=Ink.copy(alpha=.68f))};Surface(color=Color(0xFFF0E9FF),shape=RoundedCornerShape(14.dp)){Icon(Icons.Default.Favorite,null,tint=Color(0xFF95647B),modifier=Modifier.padding(11.dp).size(20.dp))}}}}
