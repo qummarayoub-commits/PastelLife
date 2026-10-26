@@ -122,12 +122,20 @@ fun DebtManager(dao: AppDao) {
                         val target = debts.firstOrNull { it.id == (paymentDebtId ?: selectedDebt?.id) }
                         val value = paymentAmount.toLongOrNull()
                         if (target == null || value == null || value <= 0L || value > target.remainingAmount) status = "Enter a payment up to the remaining balance."
+                        else if (paymentAccount == null) status = "Create an account before recording a repayment."
+                        else if (target.direction == "PAYABLE" && paymentAccount.currentBalance < value) status = "The selected account has insufficient balance."
                         else scope.launch {
-                            dao.recordDebtPaymentAndBalance(
-                                DebtPaymentEntity(debtId = target.id, amount = value, direction = if (target.direction == "RECEIVABLE") "RECEIVED" else "PAID", note = paymentNote.trim()),
-                                target.copy(remainingAmount = target.remainingAmount - value)
+                            val received = target.direction == "RECEIVABLE"
+                            val person = contacts.firstOrNull { it.id == target.contactId }?.name ?: "contact"
+                            val updatedAccount = paymentAccount.copy(currentBalance = paymentAccount.currentBalance + (if (received) value else -value))
+                            val transaction = TransactionEntity(accountId = paymentAccount.id, amount = value, type = "Debt", category = if (received) "Repayment received from " + person else "Repayment paid to " + person, note = paymentNote.trim())
+                            dao.recordDebtPaymentWithAccount(
+                                DebtPaymentEntity(debtId = target.id, amount = value, direction = if (received) "RECEIVED" else "PAID", note = paymentNote.trim()),
+                                target.copy(remainingAmount = target.remainingAmount - value),
+                                updatedAccount,
+                                transaction
                             )
-                            paymentAmount = ""; paymentNote = ""; status = "Repayment saved to history."
+                            paymentAmount = ""; paymentNote = ""; status = "Repayment saved and account balance updated."
                         }
                     }, modifier = Modifier.fillMaxWidth()) { Text("Save repayment") }
                 }
