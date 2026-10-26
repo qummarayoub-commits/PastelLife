@@ -1,5 +1,8 @@
 package com.pastellife.app
 import android.os.Bundle
+import android.content.Intent
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -49,14 +52,23 @@ class MainActivity:ComponentActivity(){
  val accounts by dao.observeAccounts().collectAsState(initial= emptyList())
  val transactions by dao.observeTransactions().collectAsState(initial= emptyList())
  val contacts by dao.observeContacts().collectAsState(initial= emptyList())
+ val attachments by dao.observeTaskAttachments().collectAsState(initial= emptyList())
  val debts by dao.observeDebts().collectAsState(initial= emptyList())
  var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }; var taskNotes by remember { mutableStateOf("") }; var taskDueDate by remember { mutableStateOf("") }; var repeatRule by remember { mutableStateOf("None") }; var taskKind by remember { mutableStateOf("Personal") }; var taskPriority by remember { mutableStateOf("Medium") }
  var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var accountType by remember { mutableStateOf("Cash") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
  var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }
- var message by remember { mutableStateOf("") }
+ var message by remember { mutableStateOf("") }; var attachmentTaskId by remember { mutableStateOf<Long?>(null) }
  val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+ val attachmentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+  if(uri != null && attachmentTaskId != null) {
+   runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+   val displayName = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor -> if(cursor.moveToFirst()) cursor.getString(0) else null } ?: uri.lastPathSegment ?: "Attachment"
+   val targetId = attachmentTaskId!!
+   scope.launch { dao.addTaskAttachment(TaskAttachmentEntity(taskId=targetId,uri=uri.toString(),displayName=displayName)); message="Attachment added." }
+  }
+ }
  LaunchedEffect(Unit){
   if(dao.countAccounts()==0) dao.addAccount(AccountEntity(name="Cash",openingBalance=0))
   if(Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -124,6 +136,13 @@ class MainActivity:ComponentActivity(){
         Text(t.kind+" • "+t.priority+" priority",fontSize=12.sp,color=Ink.copy(alpha=.65f))
         if(t.dueDate.isNotBlank()) Text("Due: "+t.dueDate,fontSize=12.sp,color=Ink.copy(alpha=.6f))
         Text(if(t.timerStartedAt!=null) "Timer running • tracked "+durationLabel(t.trackedSeconds) else "Tracked: "+durationLabel(t.trackedSeconds),fontSize=12.sp,color=Ink.copy(alpha=.7f))
+        TextButton(onClick={attachmentTaskId=t.id;attachmentPicker.launch(arrayOf("*/*"))}){Text("Attach file")}
+        attachments.filter{it.taskId==t.id}.forEach{att->
+         Row(verticalAlignment=Alignment.CenterVertically){
+          TextButton(onClick={runCatching{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(att.uri)).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))}.onFailure{message="Could not open attachment."}}){Text(att.displayName,maxLines=1)}
+          TextButton(onClick={scope.launch{dao.deleteTaskAttachment(att.id)}}){Text("Remove")}
+         }
+        }
        }
        TextButton(onClick={scope.launch{
         val now=System.currentTimeMillis()
