@@ -203,17 +203,19 @@ class MainActivity:ComponentActivity(){
 }
 private fun durationLabel(seconds: Long): String { val hours=seconds/3600; val minutes=(seconds%3600)/60; val secs=seconds%60; return if(hours>0) "${hours}h ${minutes}m" else if(minutes>0) "${minutes}m ${secs}s" else "${secs}s" }
 private suspend fun completeTaskAndRepeat(dao: AppDao, task: TaskEntity) {
- dao.updateTask(task.copy(isDone=true))
+ val now = System.currentTimeMillis()
+ val finishedSeconds = task.trackedSeconds + if(task.timerStartedAt != null) ((now-task.timerStartedAt)/1000L).coerceAtLeast(0L) else 0L
+ dao.updateTask(task.copy(isDone=true,timerStartedAt=null,trackedSeconds=finishedSeconds))
  if(task.repeatRule!="None") {
   val cal=Calendar.getInstance()
   if(task.dueDate.isNotBlank()) runCatching { SimpleDateFormat("yyyy-MM-dd",Locale.US).parse(task.dueDate) }.getOrNull()?.let { cal.time=it }
   cal.add(Calendar.DAY_OF_YEAR,if(task.repeatRule=="Daily") 1 else 7)
   val nextDate=SimpleDateFormat("yyyy-MM-dd",Locale.US).format(cal.time)
-  dao.addTask(task.copy(id=0,isDone=false,dueDate=nextDate,createdAt=System.currentTimeMillis()))
+  dao.addTask(task.copy(id=0,isDone=false,dueDate=nextDate,trackedSeconds=0,timerStartedAt=null,createdAt=now))
  }
 }
 @Composable private fun CardBlock(color:Color,content:@Composable ColumnScope.()->Unit){Surface(color=color,shape=RoundedCornerShape(22.dp),modifier=Modifier.fillMaxWidth()){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp),content=content)}}
 @Composable private fun Metric(title:String,value:String,color:Color,modifier:Modifier=Modifier){CardBlock(color){Text(title,fontSize=12.sp,color=Ink.copy(alpha=.7f));Text(value,fontSize=16.sp,fontWeight=FontWeight.Bold,color=Ink)}}
 @Composable private fun TaskLine(title:String,done:()->Unit){Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.CheckCircle,null,tint=Color(0xFF77A98D));Spacer(Modifier.width(10.dp));Text(title,Modifier.weight(1f),color=Ink);TextButton(onClick=done){Text("Done")}}}}
-@Composable private fun TxLine(tx:TransactionEntity){val pos=tx.type=="Income";Surface(color=Color.White,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(tx.category,fontWeight=FontWeight.SemiBold,color=Ink);if(tx.note.isNotBlank())Text(tx.note,fontSize=12.sp,color=Ink.copy(alpha=.6f));Text(tx.type,fontSize=12.sp,color=Ink.copy(alpha=.6f))};Text((if(pos)"+" else "−")+money(tx.amount),color=if(pos)Color(0xFF397A55) else Color(0xFFB64B5A),fontWeight=FontWeight.Bold)}}}
+@Composable private fun TxLine(tx:TransactionEntity){val sign=when(tx.type){"Income"->"+";"Expense"->"−";else->"↔ "};val txColor=when(tx.type){"Income"->Color(0xFF397A55);"Expense"->Color(0xFFB64B5A);else->Color(0xFF7963A8)};Surface(color=Color.White,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(tx.category,fontWeight=FontWeight.SemiBold,color=Ink);if(tx.note.isNotBlank())Text(tx.note,fontSize=12.sp,color=Ink.copy(alpha=.6f));Text(tx.type,fontSize=12.sp,color=Ink.copy(alpha=.6f))};Text(sign+money(tx.amount),color=txColor,fontWeight=FontWeight.Bold)}}}
 @Composable private fun Hint(text:String){Surface(color=Color.White,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()){Text(text,Modifier.padding(16.dp),color=Ink.copy(alpha=.65f),fontSize=13.sp)}}
