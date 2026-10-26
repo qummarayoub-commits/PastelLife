@@ -236,7 +236,8 @@ class MainActivity:ComponentActivity(){
      item{CardBlock(Yellow){Text("Add a contact",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)
       OutlinedTextField(value=contact,onValueChange={contact=it},label={Text("Name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=phone,onValueChange={phone=it},label={Text("Phone (optional)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
-      Button(onClick={if(contact.isNotBlank())scope.launch{dao.addContact(ContactEntity(name=contact.trim(),phone=phone.trim()));contact="";phone="";message="Contact saved."}else message="Please enter a contact name."},modifier=Modifier.fillMaxWidth()){Text("Save contact")}
+      OutlinedTextField(value=contactNotes,onValueChange={contactNotes=it},label={Text("Notes (optional)")},modifier=Modifier.fillMaxWidth(),minLines=2)
+      Button(onClick={if(contact.isNotBlank())scope.launch{dao.addContact(ContactEntity(name=contact.trim(),phone=phone.trim(),notes=contactNotes.trim()));contact="";phone="";contactNotes="";message="Contact saved."}else message="Please enter a contact name."},modifier=Modifier.fillMaxWidth()){Text("Save contact")}
      }}
      if(contacts.isEmpty())item{Hint("Contacts are stored locally. Receivables and payables are planned next.")}
      items(contacts,key={it.id}){c->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.People,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column{Text(c.name,fontWeight=FontWeight.SemiBold,color=Ink);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.65f));if(c.notes.isNotBlank())Text(c.notes,fontSize=12.sp,color=Ink.copy(alpha=.6f))}}}}
