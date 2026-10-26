@@ -38,6 +38,7 @@ class MainActivity:ComponentActivity(){
  val accounts by dao.observeAccounts().collectAsState(initial= emptyList())
  val transactions by dao.observeTransactions().collectAsState(initial= emptyList())
  val contacts by dao.observeContacts().collectAsState(initial= emptyList())
+ val debts by dao.observeDebts().collectAsState(initial= emptyList())
  var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }
  var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
@@ -47,6 +48,7 @@ class MainActivity:ComponentActivity(){
  LaunchedEffect(Unit){ if(dao.countAccounts()==0) dao.addAccount(AccountEntity(name="Cash",openingBalance=0)) }
  val balance=accounts.sumOf{it.currentBalance}; val income=transactions.filter{it.type=="Income"}.sumOf{it.amount}
  val expenses=transactions.filter{it.type=="Expense"}.sumOf{it.amount}; val savings=income-expenses
+ val receivables=debts.filter{it.direction=="RECEIVABLE"}.sumOf{it.remainingAmount}; val payables=debts.filter{it.direction=="PAYABLE"}.sumOf{it.remainingAmount}; val netPosition=balance+receivables-payables
  Scaffold(containerColor=Canvas,bottomBar={ NavigationBar(containerColor=Color.White){
   listOf("Home","Tasks","Finance","Contacts").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
    Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;else->Icons.Default.Home},contentDescription=label)
@@ -59,6 +61,7 @@ class MainActivity:ComponentActivity(){
     "Home"->{
      item{CardBlock(Pink){Text("Available balance",color=Ink.copy(alpha=.7f));Text(money(balance),fontSize=29.sp,fontWeight=FontWeight.Bold,color=Ink);Text("Across "+accounts.size+" account(s)",fontSize=12.sp,color=Ink.copy(alpha=.6f))}}
      item{Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){Metric("Tasks to do",tasks.count{!it.isDone}.toString(),Mint,Modifier.weight(1f));Metric("Net savings",money(savings),Yellow,Modifier.weight(1f))}}
+     item{Metric("Net financial position",money(netPosition),Blue,Modifier.fillMaxWidth())}
      item{Text("Today's focus",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(tasks.none{!it.isDone})item{Hint("No tasks yet. Add your first task in Tasks.")}
      items(tasks.filter{!it.isDone}.take(5),key={it.id}){t->TaskLine(t.title){scope.launch{dao.updateTask(t.copy(isDone=true))}}}
@@ -81,7 +84,7 @@ class MainActivity:ComponentActivity(){
     }
     "Finance"->{
      item{Text("Finance overview",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
-     item{CardBlock(Pink){Text("Available balance",color=Ink.copy(alpha=.7f));Text(money(balance),fontSize=27.sp,fontWeight=FontWeight.Bold,color=Ink);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Metric("Income",money(income),Mint,Modifier.weight(1f));Metric("Expenses",money(expenses),Yellow,Modifier.weight(1f))};Text("Net savings: "+money(savings),fontWeight=FontWeight.SemiBold,color=Ink)}}
+     item{CardBlock(Pink){Text("Available balance",color=Ink.copy(alpha=.7f));Text(money(balance),fontSize=27.sp,fontWeight=FontWeight.Bold,color=Ink);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Metric("Income",money(income),Mint,Modifier.weight(1f));Metric("Expenses",money(expenses),Yellow,Modifier.weight(1f))};Text("Net savings: "+money(savings),fontWeight=FontWeight.SemiBold,color=Ink);Text("Net financial position: "+money(netPosition),fontWeight=FontWeight.SemiBold,color=Ink)}}
      item{Text("Accounts",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      items(accounts,key={it.id}){a->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.AccountBalanceWallet,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(a.name,fontWeight=FontWeight.SemiBold,color=Ink);Text(a.accountType,fontSize=12.sp,color=Ink.copy(alpha=.6f))};Text(money(a.currentBalance),fontWeight=FontWeight.Bold,color=Ink)}}}
      item{CardBlock(Blue){Text("Add account",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)
@@ -101,6 +104,7 @@ class MainActivity:ComponentActivity(){
       }}},modifier=Modifier.fillMaxWidth()){Text("Save transaction")}
       Text("Saved locally on this phone. Cloud sync is not enabled yet.",fontSize=12.sp,color=Ink.copy(alpha=.7f))
      }}
+     item{TransferManager(dao)}
      item{Text("Transaction history",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(transactions.isEmpty())item{Hint("No transactions recorded yet.")}
      items(transactions,key={it.id}){TxLine(it)}
