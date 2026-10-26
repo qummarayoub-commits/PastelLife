@@ -9,6 +9,21 @@ The current app works offline and can export/import a JSON backup. Live cloud sy
 4. Download that app's google-services.json and place it in the local app/ folder. It is intentionally ignored by Git so local configuration is not accidentally committed.
 5. Configure Firestore security rules so each authenticated user can read/write only their own user-scoped documents. Do not use public read/write rules for personal finance data.
 
+Example starting rule for documents stored under `users/{uid}/...` (review it against the final sync implementation before enabling production data):
+
+```text
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+Do not deploy broad public rules such as `allow read, write: if true;`.
+
 ## Sync implementation still required
 - Add the Google Services Gradle plugin and Firebase BoM/Auth/Firestore dependencies.
 - Add sign-in, sign-out, password recovery and account deletion flows.
