@@ -69,11 +69,20 @@ class MainActivity:ComponentActivity(){
   WorkManager.getInstance(context).enqueueUniquePeriodicWork("pastellife-daily-reminder",ExistingPeriodicWorkPolicy.UPDATE,request)
  }
  val balance=accounts.sumOf{it.currentBalance}; val income=transactions.filter{it.type=="Income"}.sumOf{it.amount}
- val expenses=transactions.filter{it.type=="Expense"}.sumOf{it.amount}; val savings=income-expenses
+ val expenses=transactions.filter{it.type=="Expense"}.sumOf{it.amount}
+ val monthStart=Calendar.getInstance().apply{set(Calendar.DAY_OF_MONTH,1);set(Calendar.HOUR_OF_DAY,0);set(Calendar.MINUTE,0);set(Calendar.SECOND,0);set(Calendar.MILLISECOND,0)}.timeInMillis
+ val weekStart=Calendar.getInstance().apply{set(Calendar.DAY_OF_WEEK,firstDayOfWeek);set(Calendar.HOUR_OF_DAY,0);set(Calendar.MINUTE,0);set(Calendar.SECOND,0);set(Calendar.MILLISECOND,0)}.timeInMillis
+ val monthTx=transactions.filter{it.createdAt>=monthStart}
+ val weekTx=transactions.filter{it.createdAt>=weekStart}
+ val monthIncome=monthTx.filter{it.type=="Income"}.sumOf{it.amount}
+ val monthExpenses=monthTx.filter{it.type=="Expense"}.sumOf{it.amount}
+ val weekIncome=weekTx.filter{it.type=="Income"}.sumOf{it.amount}
+ val weekExpenses=weekTx.filter{it.type=="Expense"}.sumOf{it.amount}
+ val savings=monthIncome-monthExpenses
  val receivables=debts.filter{it.direction=="RECEIVABLE"}.sumOf{it.remainingAmount}; val payables=debts.filter{it.direction=="PAYABLE"}.sumOf{it.remainingAmount}; val netPosition=balance+receivables-payables
  Scaffold(containerColor=Canvas,bottomBar={ NavigationBar(containerColor=Color.White){
-  listOf("Home","Tasks","Finance","Contacts").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
-   Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;else->Icons.Default.Home},contentDescription=label)
+  listOf("Home","Tasks","Finance","Contacts","Reports").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
+   Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;"Reports"->Icons.Default.Assessment;else->Icons.Default.Home},contentDescription=label)
   },label={Text(label)})}
  }}){ pad->
   LazyColumn(Modifier.fillMaxSize().padding(pad).padding(horizontal=20.dp),contentPadding=PaddingValues(top=24.dp,bottom=28.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
@@ -134,6 +143,19 @@ class MainActivity:ComponentActivity(){
      item{Text("Transaction history",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(transactions.isEmpty())item{Hint("No transactions recorded yet.")}
      items(transactions,key={it.id}){TxLine(it)}
+    }
+    "Reports"->{
+     item{Text("Reports",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
+     item{Text("Monthly overview",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
+     item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Metric("Income",money(monthIncome),Mint,Modifier.weight(1f));Metric("Expenses",money(monthExpenses),Yellow,Modifier.weight(1f))}}
+     item{CardBlock(Pink){Text("Monthly net savings",color=Ink.copy(alpha=.7f));Text(money(monthIncome-monthExpenses),fontSize=26.sp,fontWeight=FontWeight.Bold,color=Ink);Text("Income minus expenses recorded this month. Transfers are excluded.",fontSize=12.sp,color=Ink.copy(alpha=.7f))}}
+     item{Text("This week",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
+     item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Metric("Income",money(weekIncome),Mint,Modifier.weight(1f));Metric("Expenses",money(weekExpenses),Yellow,Modifier.weight(1f))}}
+     item{Metric("Weekly net",money(weekIncome-weekExpenses),Blue,Modifier.fillMaxWidth())}
+     item{Text("Tasks",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
+     item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Metric("Completed",tasks.count{it.isDone}.toString(),Mint,Modifier.weight(1f));Metric("Remaining",tasks.count{!it.isDone}.toString(),Yellow,Modifier.weight(1f))}}
+     item{Text("Accounts total",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
+     item{Metric("Available balance",money(balance),Blue,Modifier.fillMaxWidth())}
     }
     "Contacts"->{
      item{Text("Contacts",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
