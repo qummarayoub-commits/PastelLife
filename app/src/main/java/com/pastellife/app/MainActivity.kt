@@ -131,7 +131,7 @@ class MainActivity:ComponentActivity(){
      }}
      if(tasks.isEmpty())item{Hint("Your task list is empty.")}
      items(tasks,key={it.id}){t->Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
-      Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=t.isDone,onCheckedChange={v->scope.launch{if(v) completeTaskAndRepeat(dao,t) else {dao.updateTask(t.copy(isDone=false));TaskReminderScheduler.schedule(context,t.id,t.title,t.dueDate)}}})
+      Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=t.isDone,onCheckedChange={v->scope.launch{if(v) completeTaskAndRepeat(context,dao,t) else {dao.updateTask(t.copy(isDone=false));TaskReminderScheduler.schedule(context,t.id,t.title,t.dueDate)}}})
        Column(Modifier.weight(1f)){
         Text(t.title,color=Ink,fontWeight=FontWeight.Medium)
         if(t.notes.isNotBlank()) Text(t.notes,fontSize=12.sp,color=Ink.copy(alpha=.65f))
@@ -177,7 +177,7 @@ class MainActivity:ComponentActivity(){
       Text(t.dueDate,fontWeight=FontWeight.SemiBold,color=Color(0xFF95647B))
       Text(t.title,color=Ink)
       Text((if(t.isDone)"Completed" else "Pending")+(if(t.repeatRule!="None")" • "+t.repeatRule+" repeat" else ""),fontSize=12.sp,color=Ink.copy(alpha=.65f))
-      if(!t.isDone) TextButton(onClick={scope.launch{completeTaskAndRepeat(dao,t)}}){Text("Complete")}
+      if(!t.isDone) TextButton(onClick={scope.launch{completeTaskAndRepeat(context,dao,t)}}){Text("Complete")}
      }}
     }
     "Finance"->{
