@@ -112,7 +112,17 @@ class MainActivity:ComponentActivity(){
      if(tasks.isEmpty())item{Hint("Your task list is empty.")}
      items(tasks,key={it.id}){t->Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
       Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=t.isDone,onCheckedChange={v->scope.launch{if(v) completeTaskAndRepeat(dao,t) else dao.updateTask(t.copy(isDone=false))}})
-       Column(Modifier.weight(1f)){Text(t.title,color=Ink,fontWeight=FontWeight.Medium);Text(if(t.isDone)"Completed" else "To do",fontSize=12.sp,color=Ink.copy(alpha=.6f))}
+       Column(Modifier.weight(1f)){
+        Text(t.title,color=Ink,fontWeight=FontWeight.Medium)
+        Text(if(t.isDone)"Completed" else "To do",fontSize=12.sp,color=Ink.copy(alpha=.6f))
+        if(t.dueDate.isNotBlank()) Text("Due: "+t.dueDate,fontSize=12.sp,color=Ink.copy(alpha=.6f))
+        Text(if(t.timerStartedAt!=null) "Timer running • tracked "+durationLabel(t.trackedSeconds) else "Tracked: "+durationLabel(t.trackedSeconds),fontSize=12.sp,color=Ink.copy(alpha=.7f))
+       }
+       TextButton(onClick={scope.launch{
+        val now=System.currentTimeMillis()
+        if(t.timerStartedAt==null) dao.updateTask(t.copy(timerStartedAt=now))
+        else dao.updateTask(t.copy(timerStartedAt=null,trackedSeconds=t.trackedSeconds+((now-t.timerStartedAt)/1000L).coerceAtLeast(0L)))
+       }}){Text(if(t.timerStartedAt==null)"Start" else "Stop")}
        TextButton(onClick={scope.launch{dao.deleteTask(t.id)}}){Text("Delete")}
       }
      }}
@@ -172,6 +182,7 @@ class MainActivity:ComponentActivity(){
   }
  }
 }
+private fun durationLabel(seconds: Long): String { val hours=seconds/3600; val minutes=(seconds%3600)/60; val secs=seconds%60; return if(hours>0) "${hours}h ${minutes}m" else if(minutes>0) "${minutes}m ${secs}s" else "${secs}s" }
 private suspend fun completeTaskAndRepeat(dao: AppDao, task: TaskEntity) {
  dao.updateTask(task.copy(isDone=true))
  if(task.repeatRule!="None") {
