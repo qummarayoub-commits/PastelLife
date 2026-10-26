@@ -55,6 +55,14 @@ interface AppDao {
         updateDebt(updatedDebt)
     }
 
+    @Transaction
+    suspend fun recordDebtPaymentWithAccount(payment: DebtPaymentEntity, updatedDebt: DebtEntity, updatedAccount: AccountEntity, transaction: TransactionEntity) {
+        addDebtPayment(payment)
+        updateDebt(updatedDebt)
+        addTransaction(transaction)
+        updateAccount(updatedAccount)
+    }
+
     @Query("SELECT * FROM debt_payments WHERE debtId = :debtId ORDER BY createdAt DESC")
     fun observePayments(debtId: Long): Flow<List<DebtPaymentEntity>>
     @Insert suspend fun addDebtPayment(payment: DebtPaymentEntity): Long
