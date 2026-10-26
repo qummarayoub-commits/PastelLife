@@ -51,7 +51,7 @@ class MainActivity:ComponentActivity(){
  val contacts by dao.observeContacts().collectAsState(initial= emptyList())
  val debts by dao.observeDebts().collectAsState(initial= emptyList())
  var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }; var taskDueDate by remember { mutableStateOf("") }; var repeatRule by remember { mutableStateOf("None") }
- var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }
+ var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
  var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }
@@ -139,10 +139,15 @@ class MainActivity:ComponentActivity(){
      }}
      item{CardBlock(Mint){Text("Record transaction",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)
       Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(selected=txType=="Income",onClick={txType="Income"},label={Text("Income")});FilterChip(selected=txType=="Expense",onClick={txType="Expense"},label={Text("Expense")})}
+      Box {
+       val chosenAccount=accounts.firstOrNull{it.id==selectedAccountId} ?: accounts.firstOrNull()
+       OutlinedButton(onClick={accountMenuOpen=true},modifier=Modifier.fillMaxWidth()){Text("Account: "+(chosenAccount?.name ?: "Choose account"))}
+       DropdownMenu(expanded=accountMenuOpen,onDismissRequest={accountMenuOpen=false}){accounts.forEach{acc->DropdownMenuItem(text={Text(acc.name)},onClick={selectedAccountId=acc.id;accountMenuOpen=false})}}
+      }
       OutlinedTextField(value=amount,onValueChange={amount=it.filter{c->c.isDigit()}},label={Text("Amount (PKR)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=category,onValueChange={category=it},label={Text("Category")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=note,onValueChange={note=it},label={Text("Note (optional)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
-      Button(onClick={val v=amount.toLongOrNull();val a=accounts.firstOrNull();when{v==null||v<=0L||a==null->message="Enter a positive amount and ensure an account exists.";txType=="Expense"&&a.currentBalance<v->message="Insufficient balance in the first account.";else->scope.launch{
+      Button(onClick={val v=amount.toLongOrNull();val a=accounts.firstOrNull{it.id==selectedAccountId} ?: accounts.firstOrNull();when{v==null||v<=0L||a==null->message="Enter a positive amount and ensure an account exists.";txType=="Expense"&&a.currentBalance<v->message="Insufficient balance in the first account.";else->scope.launch{
        dao.addTransaction(TransactionEntity(accountId=a!!.id,amount=v!!,type=txType,category=category.ifBlank{"General"}.trim(),note=note.trim()))
        dao.updateAccount(a.copy(currentBalance=a.currentBalance+(if(txType=="Income")v else -v)))
        amount="";note="";message=txType+" saved."
