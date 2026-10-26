@@ -148,7 +148,7 @@ fun DebtManager(dao: AppDao) {
             val person = contacts.firstOrNull { it.id == debt?.contactId }?.name ?: "Contact"
             Surface(color = Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
                 Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(Modifier.weight(1f)) { Text(person, fontWeight = FontWeight.Medium, color = DebtInk); Text(payment.direction, fontSize = 12.sp, color = DebtInk.copy(alpha=.6f)); if(payment.note.isNotBlank()) Text(payment.note, fontSize=12.sp,color=DebtInk.copy(alpha=.6f)) }
+                    Column(Modifier.weight(1f)) { Text(person, fontWeight = FontWeight.Medium, color = DebtInk); Text(payment.direction, fontSize = 12.sp, color = DebtInk.copy(alpha=.6f)); if(payment.note.isNotBlank()) Text(payment.note, fontSize=12.sp,color=DebtInk.copy(alpha=.6f)); Text(java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.US).format(java.util.Date(payment.createdAt)),fontSize=11.sp,color=DebtInk.copy(alpha=.5f)) }
                     Text(debtMoney(payment.amount), fontWeight = FontWeight.SemiBold, color = DebtInk)
                 }
             }
