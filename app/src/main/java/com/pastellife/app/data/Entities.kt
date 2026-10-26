@@ -12,6 +12,8 @@ data class TaskEntity(
     val priority: String = "Medium",
     val dueDate: String = "",
     val repeatRule: String = "None",
+    val trackedSeconds: Long = 0,
+    val timerStartedAt: Long? = null,
     val notes: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
