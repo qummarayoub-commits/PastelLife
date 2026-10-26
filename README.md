@@ -19,7 +19,7 @@ PastelLife is an early Android personal task and finance manager built with Kotl
 ## Still to build / verify
 - Cloud login and sync are not connected; no Firebase project configuration is included. See CLOUD_SYNC_SETUP.md for the exact setup blocker and secure requirements.
 - Task-specific scheduled reminders, cloud attachment upload, richer calendar navigation and charts remain unfinished.
-- This is not production-ready. The code needs a successful automated build, device testing, data-integrity tests and security review.
+- This is not production-ready. The local Room database is not encrypted at rest yet. The code needs a successful automated build, device testing, data-integrity tests, encryption and a security review before storing highly sensitive financial records.
 - A debug APK is only confirmed available after GitHub Actions succeeds and the artifact is checked.
 
 ## Build
