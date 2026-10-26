@@ -51,7 +51,7 @@ class MainActivity:ComponentActivity(){
  val contacts by dao.observeContacts().collectAsState(initial= emptyList())
  val debts by dao.observeDebts().collectAsState(initial= emptyList())
  var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }; var taskDueDate by remember { mutableStateOf("") }; var repeatRule by remember { mutableStateOf("None") }; var taskKind by remember { mutableStateOf("Personal") }; var taskPriority by remember { mutableStateOf("Medium") }
- var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
+ var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var accountType by remember { mutableStateOf("Cash") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
  var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }
@@ -152,7 +152,9 @@ class MainActivity:ComponentActivity(){
      item{CardBlock(Blue){Text("Add account",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)
       OutlinedTextField(value=accountName,onValueChange={accountName=it},label={Text("Account name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=opening,onValueChange={opening=it.filter{c->c.isDigit()}},label={Text("Opening balance (PKR)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
-      Button(onClick={val n=accountName.trim();val b=opening.toLongOrNull();if(n.isNotBlank()&&b!=null)scope.launch{dao.addAccount(AccountEntity(name=n,openingBalance=b));accountName="";opening="";message="Account added."}else message="Enter account name and opening balance."},modifier=Modifier.fillMaxWidth()){Text("Save account")}
+      Text("Account type",color=Ink,fontWeight=FontWeight.Medium)
+      Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Cash","Bank","Mobile wallet","Custom").forEach{kind->FilterChip(selected=accountType==kind,onClick={accountType=kind},label={Text(kind)})}}
+      Button(onClick={val n=accountName.trim();val b=opening.toLongOrNull();if(n.isNotBlank()&&b!=null)scope.launch{dao.addAccount(AccountEntity(name=n,openingBalance=b,accountType=accountType));accountName="";opening="";accountType="Cash";message="Account added."}else message="Enter account name and opening balance."},modifier=Modifier.fillMaxWidth()){Text("Save account")}
      }}
      item{CardBlock(Mint){Text("Record transaction",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)
       Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(selected=txType=="Income",onClick={txType="Income"},label={Text("Income")});FilterChip(selected=txType=="Expense",onClick={txType="Expense"},label={Text("Expense")})}
