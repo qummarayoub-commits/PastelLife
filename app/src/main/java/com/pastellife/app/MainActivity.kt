@@ -68,7 +68,7 @@ class MainActivity:ComponentActivity(){
   val request = PeriodicWorkRequestBuilder<DailyTaskReminderWorker>(24,TimeUnit.HOURS).setInitialDelay(delay,TimeUnit.MILLISECONDS).build()
   WorkManager.getInstance(context).enqueueUniquePeriodicWork("pastellife-daily-reminder",ExistingPeriodicWorkPolicy.UPDATE,request)
  }
- val balance=accounts.sumOf{it.currentBalance}; val income=transactions.filter{it.type=="Income"}.sumOf{it.amount}
+ val balance=FinanceCalculations.availableBalance(accounts); val income=transactions.filter{it.type=="Income"}.sumOf{it.amount}
  val expenses=transactions.filter{it.type=="Expense"}.sumOf{it.amount}
  val monthStart=Calendar.getInstance().apply{set(Calendar.DAY_OF_MONTH,1);set(Calendar.HOUR_OF_DAY,0);set(Calendar.MINUTE,0);set(Calendar.SECOND,0);set(Calendar.MILLISECOND,0)}.timeInMillis
  val weekStart=Calendar.getInstance().apply{set(Calendar.DAY_OF_WEEK,firstDayOfWeek);set(Calendar.HOUR_OF_DAY,0);set(Calendar.MINUTE,0);set(Calendar.SECOND,0);set(Calendar.MILLISECOND,0)}.timeInMillis
@@ -79,7 +79,7 @@ class MainActivity:ComponentActivity(){
  val weekIncome=weekTx.filter{it.type=="Income"}.sumOf{it.amount}
  val weekExpenses=weekTx.filter{it.type=="Expense"}.sumOf{it.amount}
  val savings=monthIncome-monthExpenses
- val receivables=debts.filter{it.direction=="RECEIVABLE"}.sumOf{it.remainingAmount}; val payables=debts.filter{it.direction=="PAYABLE"}.sumOf{it.remainingAmount}; val netPosition=balance+receivables-payables
+ val netPosition=FinanceCalculations.netFinancialPosition(accounts,debts)
  Scaffold(containerColor=Canvas,bottomBar={ NavigationBar(containerColor=Color.White){
   listOf("Home","Tasks","Calendar","Finance","Contacts","Reports").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
    Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Calendar"->Icons.Default.DateRange;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;"Reports"->Icons.Default.Assessment;else->Icons.Default.Home},contentDescription=label)
