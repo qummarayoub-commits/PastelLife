@@ -2,6 +2,8 @@ package com.pastellife.app.data
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Transaction
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -42,4 +44,32 @@ interface AppDao {
     @Insert suspend fun addSavingsGoal(goal: SavingsGoalEntity): Long
     @Update suspend fun updateSavingsGoal(goal: SavingsGoalEntity)
     @Query("DELETE FROM savings_goals WHERE id = :id") suspend fun deleteSavingsGoal(id: Long)
+    @Query("SELECT * FROM tasks") suspend fun backupTaskEntity(): List<TaskEntity>
+    @Query("DELETE FROM tasks") suspend fun clearTaskEntity()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreTaskEntity(items: List<TaskEntity>)
+
+    @Query("SELECT * FROM accounts") suspend fun backupAccountEntity(): List<AccountEntity>
+    @Query("DELETE FROM accounts") suspend fun clearAccountEntity()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreAccountEntity(items: List<AccountEntity>)
+
+    @Query("SELECT * FROM transactions") suspend fun backupTransactionEntity(): List<TransactionEntity>
+    @Query("DELETE FROM transactions") suspend fun clearTransactionEntity()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreTransactionEntity(items: List<TransactionEntity>)
+
+    @Query("SELECT * FROM contacts") suspend fun backupContactEntity(): List<ContactEntity>
+    @Query("DELETE FROM contacts") suspend fun clearContactEntity()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreContactEntity(items: List<ContactEntity>)
+
+    @Query("SELECT * FROM debts") suspend fun backupDebtEntity(): List<DebtEntity>
+    @Query("DELETE FROM debts") suspend fun clearDebtEntity()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreDebtEntity(items: List<DebtEntity>)
+
+    @Query("SELECT * FROM debt_payments") suspend fun backupDebtPaymentEntity(): List<DebtPaymentEntity>
+    @Query("DELETE FROM debt_payments") suspend fun clearDebtPaymentEntity()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreDebtPaymentEntity(items: List<DebtPaymentEntity>)
+
+    @Query("SELECT * FROM savings_goals") suspend fun backupSavingsGoalEntity(): List<SavingsGoalEntity>
+    @Query("DELETE FROM savings_goals") suspend fun clearSavingsGoalEntity()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreSavingsGoalEntity(items: List<SavingsGoalEntity>)
+
 }
