@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.pastellife.app.data.*
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
@@ -49,7 +50,7 @@ class MainActivity:ComponentActivity(){
  val transactions by dao.observeTransactions().collectAsState(initial= emptyList())
  val contacts by dao.observeContacts().collectAsState(initial= emptyList())
  val debts by dao.observeDebts().collectAsState(initial= emptyList())
- var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }
+ var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }; var taskDueDate by remember { mutableStateOf("") }; var repeatRule by remember { mutableStateOf("None") }
  var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
@@ -85,19 +86,23 @@ class MainActivity:ComponentActivity(){
      item{Metric("Net financial position",money(netPosition),Blue,Modifier.fillMaxWidth())}
      item{Text("Today's focus",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(tasks.none{!it.isDone})item{Hint("No tasks yet. Add your first task in Tasks.")}
-     items(tasks.filter{!it.isDone}.take(5),key={it.id}){t->TaskLine(t.title){scope.launch{dao.updateTask(t.copy(isDone=true))}}}
+     items(tasks.filter{!it.isDone}.take(5),key={it.id}){t->TaskLine(t.title){scope.launch{completeTaskAndRepeat(dao,t)}}}
      item{Text("Recent transactions",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(transactions.isEmpty())item{Hint("Your income and expenses will appear here.")}
      items(transactions.take(4),key={it.id}){TxLine(it)}
     }
     "Tasks"->{
      item{Text("Your tasks",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
-     item{OutlinedTextField(value=task,onValueChange={task=it},modifier=Modifier.fillMaxWidth(),label={Text("What do you need to do?")},singleLine=true,shape=RoundedCornerShape(18.dp),trailingIcon={TextButton(onClick={
-      if(task.isNotBlank()){val title=task.trim();scope.launch{dao.addTask(TaskEntity(title=title));task="";message="Task saved on this device."}}
-     }){Text("Add")}})}
+     item{Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
+      OutlinedTextField(value=task,onValueChange={task=it},modifier=Modifier.fillMaxWidth(),label={Text("What do you need to do?")},singleLine=true,shape=RoundedCornerShape(18.dp))
+      OutlinedTextField(value=taskDueDate,onValueChange={taskDueDate=it},modifier=Modifier.fillMaxWidth(),label={Text("Due date (YYYY-MM-DD, optional)")},singleLine=true)
+      Text("Repeat",color=Ink,fontWeight=FontWeight.Medium)
+      Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("None","Daily","Weekly").forEach{rule->FilterChip(selected=repeatRule==rule,onClick={repeatRule=rule},label={Text(rule)})}}
+      Button(onClick={if(task.isNotBlank()){val title=task.trim();scope.launch{dao.addTask(TaskEntity(title=title,dueDate=taskDueDate.trim(),repeatRule=repeatRule));task="";taskDueDate="";repeatRule="None";message="Task saved on this device."}}else message="Enter a task first."},modifier=Modifier.fillMaxWidth()){Text("Add task")}
+     }}
      if(tasks.isEmpty())item{Hint("Your task list is empty.")}
      items(tasks,key={it.id}){t->Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
-      Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=t.isDone,onCheckedChange={v->scope.launch{dao.updateTask(t.copy(isDone=v))}})
+      Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=t.isDone,onCheckedChange={v->scope.launch{if(v) completeTaskAndRepeat(dao,t) else dao.updateTask(t.copy(isDone=false))}})
        Column(Modifier.weight(1f)){Text(t.title,color=Ink,fontWeight=FontWeight.Medium);Text(if(t.isDone)"Completed" else "To do",fontSize=12.sp,color=Ink.copy(alpha=.6f))}
        TextButton(onClick={scope.launch{dao.deleteTask(t.id)}}){Text("Delete")}
       }
@@ -143,6 +148,16 @@ class MainActivity:ComponentActivity(){
     }
    }
   }
+ }
+}
+private suspend fun completeTaskAndRepeat(dao: AppDao, task: TaskEntity) {
+ dao.updateTask(task.copy(isDone=true))
+ if(task.repeatRule!="None") {
+  val cal=Calendar.getInstance()
+  if(task.dueDate.isNotBlank()) runCatching { SimpleDateFormat("yyyy-MM-dd",Locale.US).parse(task.dueDate) }.getOrNull()?.let { cal.time=it }
+  cal.add(Calendar.DAY_OF_YEAR,if(task.repeatRule=="Daily") 1 else 7)
+  val nextDate=SimpleDateFormat("yyyy-MM-dd",Locale.US).format(cal.time)
+  dao.addTask(task.copy(id=0,isDone=false,dueDate=nextDate,createdAt=System.currentTimeMillis()))
  }
 }
 @Composable private fun CardBlock(color:Color,content:@Composable ColumnScope.()->Unit){Surface(color=color,shape=RoundedCornerShape(22.dp),modifier=Modifier.fillMaxWidth()){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp),content=content)}}
