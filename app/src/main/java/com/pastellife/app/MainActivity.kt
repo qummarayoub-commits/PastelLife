@@ -82,7 +82,7 @@ class MainActivity:ComponentActivity(){
  val receivables=debts.filter{it.direction=="RECEIVABLE"}.sumOf{it.remainingAmount}; val payables=debts.filter{it.direction=="PAYABLE"}.sumOf{it.remainingAmount}; val netPosition=balance+receivables-payables
  Scaffold(containerColor=Canvas,bottomBar={ NavigationBar(containerColor=Color.White){
   listOf("Home","Tasks","Calendar","Finance","Contacts","Reports").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
-   Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Calendar"->Icons.Default.CalendarMonth;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;"Reports"->Icons.Default.Assessment;else->Icons.Default.Home},contentDescription=label)
+   Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Calendar"->Icons.Default.DateRange;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;"Reports"->Icons.Default.Assessment;else->Icons.Default.Home},contentDescription=label)
   },label={Text(label)})}
  }}){ pad->
   LazyColumn(Modifier.fillMaxSize().padding(pad).padding(horizontal=20.dp),contentPadding=PaddingValues(top=24.dp,bottom=28.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
