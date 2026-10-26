@@ -188,7 +188,7 @@ class MainActivity:ComponentActivity(){
       OutlinedTextField(value=amount,onValueChange={amount=it.filter{c->c.isDigit()}},label={Text("Amount (PKR)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=category,onValueChange={category=it},label={Text("Category")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=note,onValueChange={note=it},label={Text("Note (optional)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
-      Button(onClick={val v=amount.toLongOrNull();val a=accounts.firstOrNull{it.id==selectedAccountId} ?: accounts.firstOrNull();when{v==null||v<=0L||a==null->message="Enter a positive amount and ensure an account exists.";txType=="Expense"&&a.currentBalance<v->message="Insufficient balance in the first account.";else->scope.launch{
+      Button(onClick={val v=amount.toLongOrNull();val a=accounts.firstOrNull{it.id==selectedAccountId} ?: accounts.firstOrNull();when{v==null||v<=0L||a==null->message="Enter a positive amount and ensure an account exists.";txType=="Expense"&&a.currentBalance<v->message="Insufficient balance in the selected account.";else->scope.launch{
        dao.recordTransactionAndBalance(
         TransactionEntity(accountId=a!!.id,amount=v!!,type=txType,category=category.ifBlank{"General"}.trim(),note=note.trim()),
         a.copy(currentBalance=a.currentBalance+(if(txType=="Income")v else -v))
@@ -202,7 +202,7 @@ class MainActivity:ComponentActivity(){
      item{TransferManager(dao)}
      item{Text("Transaction history",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(transactions.isEmpty())item{Hint("No transactions recorded yet.")}
-     items(transactions,key={it.id}){TxLine(it)}
+     items(transactions,key={it.id}){tx->TxLine(tx,accounts.firstOrNull{account->account.id==tx.accountId}?.name ?: "Account")}
     }
     "Reports"->{
      item{Text("Reports",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
@@ -248,5 +248,5 @@ private suspend fun completeTaskAndRepeat(dao: AppDao, task: TaskEntity) {
 @Composable private fun CardBlock(color:Color,content:@Composable ColumnScope.()->Unit){Surface(color=color,shape=RoundedCornerShape(22.dp),modifier=Modifier.fillMaxWidth()){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp),content=content)}}
 @Composable private fun Metric(title:String,value:String,color:Color,modifier:Modifier=Modifier){CardBlock(color){Text(title,fontSize=12.sp,color=Ink.copy(alpha=.7f));Text(value,fontSize=16.sp,fontWeight=FontWeight.Bold,color=Ink)}}
 @Composable private fun TaskLine(title:String,done:()->Unit){Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.CheckCircle,null,tint=Color(0xFF77A98D));Spacer(Modifier.width(10.dp));Text(title,Modifier.weight(1f),color=Ink);TextButton(onClick=done){Text("Done")}}}}
-@Composable private fun TxLine(tx:TransactionEntity){val sign=when(tx.type){"Income"->"+";"Expense"->"−";else->"↔ "};val txColor=when(tx.type){"Income"->Color(0xFF397A55);"Expense"->Color(0xFFB64B5A);else->Color(0xFF7963A8)};Surface(color=Color.White,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(tx.category,fontWeight=FontWeight.SemiBold,color=Ink);if(tx.note.isNotBlank())Text(tx.note,fontSize=12.sp,color=Ink.copy(alpha=.6f));Text(tx.type,fontSize=12.sp,color=Ink.copy(alpha=.6f));Text(SimpleDateFormat("dd MMM yyyy, hh:mm a",Locale.US).format(java.util.Date(tx.createdAt)),fontSize=11.sp,color=Ink.copy(alpha=.5f))};Text(sign+money(tx.amount),color=txColor,fontWeight=FontWeight.Bold)}}}
+@Composable private fun TxLine(tx:TransactionEntity, accountName:String){val sign=when(tx.type){"Income"->"+";"Expense"->"−";else->"↔ "};val txColor=when(tx.type){"Income"->Color(0xFF397A55);"Expense"->Color(0xFFB64B5A);else->Color(0xFF7963A8)};Surface(color=Color.White,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(tx.category,fontWeight=FontWeight.SemiBold,color=Ink);Text(accountName,fontSize=12.sp,color=Ink.copy(alpha=.65f));if(tx.note.isNotBlank())Text(tx.note,fontSize=12.sp,color=Ink.copy(alpha=.6f));Text(tx.type,fontSize=12.sp,color=Ink.copy(alpha=.6f));Text(SimpleDateFormat("dd MMM yyyy, hh:mm a",Locale.US).format(java.util.Date(tx.createdAt)),fontSize=11.sp,color=Ink.copy(alpha=.5f))};Text(sign+money(tx.amount),color=txColor,fontWeight=FontWeight.Bold)}}}
 @Composable private fun Hint(text:String){Surface(color=Color.White,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()){Text(text,Modifier.padding(16.dp),color=Ink.copy(alpha=.65f),fontSize=13.sp)}}
