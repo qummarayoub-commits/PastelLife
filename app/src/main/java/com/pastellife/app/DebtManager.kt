@@ -108,6 +108,14 @@ fun DebtManager(dao: AppDao) {
                             }
                         }
                     }
+                    Box {
+                        OutlinedButton(onClick = { accountMenuOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text("Account: " + (paymentAccount?.name ?: "Choose account"))
+                        }
+                        DropdownMenu(expanded = accountMenuOpen, onDismissRequest = { accountMenuOpen = false }) {
+                            accounts.forEach { account -> DropdownMenuItem(text = { Text(account.name) }, onClick = { paymentAccountId = account.id; accountMenuOpen = false }) }
+                        }
+                    }
                     OutlinedTextField(value = paymentAmount, onValueChange = { paymentAmount = it.filter(Char::isDigit) }, label = { Text("Payment amount (PKR)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(value = paymentNote, onValueChange = { paymentNote = it }, label = { Text("Payment note (optional)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     Button(onClick = {
