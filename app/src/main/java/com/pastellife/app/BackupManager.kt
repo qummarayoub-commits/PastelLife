@@ -54,7 +54,7 @@ fun BackupManager(database: AppDatabase) {
     Surface(color = Color(0xFFECE5F7), shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Text("Backup & restore", style = MaterialTheme.typography.titleMedium, color = Color(0xFF33313A))
-            Text("Export a copy of your local data as a JSON file, or restore a backup. Restoring replaces the data currently on this device.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF55515E))
+            Text("Export a copy of your local data as a JSON file, or restore a backup. Restoring replaces the data currently on this device. File attachments are not embedded in the backup.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF55515E))
             Button(onClick = { exportLauncher.launch("pastellife-backup.json") }, modifier = Modifier.fillMaxWidth()) { Text("Export backup") }
             OutlinedButton(onClick = { confirmRestore = true }, modifier = Modifier.fillMaxWidth()) { Text("Restore backup") }
             if (status.isNotBlank()) Text(status, color = Color(0xFF397A55), style = MaterialTheme.typography.bodySmall)
@@ -111,7 +111,7 @@ private suspend fun restoreBackup(database: AppDatabase, root: JSONObject) {
 
     database.withTransaction {
         dao.clearTaskEntity(); dao.clearAccountEntity(); dao.clearTransactionEntity(); dao.clearContactEntity()
-        dao.clearDebtEntity(); dao.clearDebtPaymentEntity(); dao.clearSavingsGoalEntity()
+        dao.clearDebtEntity(); dao.clearDebtPaymentEntity(); dao.clearSavingsGoalEntity(); dao.clearTaskAttachments()
         if(tasks.isNotEmpty()) dao.restoreTaskEntity(tasks)
         if(accounts.isNotEmpty()) dao.restoreAccountEntity(accounts)
         if(transactions.isNotEmpty()) dao.restoreTransactionEntity(transactions)
