@@ -183,6 +183,7 @@ class MainActivity:ComponentActivity(){
      item{Text("Finance overview",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
      item{CardBlock(Pink){Text("Available balance",color=Ink.copy(alpha=.7f));Text(money(balance),fontSize=27.sp,fontWeight=FontWeight.Bold,color=Ink);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Metric("Income",money(income),Mint,Modifier.weight(1f));Metric("Expenses",money(expenses),Yellow,Modifier.weight(1f))};Text("Net savings: "+money(savings),fontWeight=FontWeight.SemiBold,color=Ink);Text("Net financial position: "+money(netPosition),fontWeight=FontWeight.SemiBold,color=Ink)}}
      item{Text("Accounts",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
+     if(accounts.isEmpty()) item{Hint("Create your first account and enter its opening balance to start tracking finances.")}
      items(accounts,key={it.id}){a->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.AccountBalanceWallet,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(a.name,fontWeight=FontWeight.SemiBold,color=Ink);Text(a.accountType,fontSize=12.sp,color=Ink.copy(alpha=.6f))};Text(money(a.currentBalance),fontWeight=FontWeight.Bold,color=Ink)}}}
      item{CardBlock(Blue){Text("Add account",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)
       OutlinedTextField(value=accountName,onValueChange={accountName=it},label={Text("Account name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
