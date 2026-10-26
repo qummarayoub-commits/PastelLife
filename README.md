@@ -13,7 +13,7 @@ PastelLife is an early Android personal task and finance manager built with Kotl
 - Contacts, receivables/payables, partial repayments and repayment history
 - Savings goals, target dates, progress and contributions
 - Weekly/monthly summaries and finance calculation unit tests
-- JSON export and restore of local app data, with confirmation before replacing current data (file attachment contents are not embedded)
+- JSON export and restore of local app data, with confirmation before replacing current data (file attachment links and contents are not included)
 - Room migrations for recurring tasks, time tracking and savings goals
 
 ## Still to build / verify
