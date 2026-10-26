@@ -72,6 +72,10 @@ interface AppDao {
     @Insert suspend fun addSavingsGoal(goal: SavingsGoalEntity): Long
     @Update suspend fun updateSavingsGoal(goal: SavingsGoalEntity)
     @Query("DELETE FROM savings_goals WHERE id = :id") suspend fun deleteSavingsGoal(id: Long)
+    @Query("SELECT * FROM task_attachments ORDER BY addedAt DESC") fun observeTaskAttachments(): Flow<List<TaskAttachmentEntity>>
+    @Insert suspend fun addTaskAttachment(attachment: TaskAttachmentEntity): Long
+    @Query("DELETE FROM task_attachments WHERE id = :id") suspend fun deleteTaskAttachment(id: Long)
+
     @Query("SELECT * FROM tasks") suspend fun backupTaskEntity(): List<TaskEntity>
     @Query("DELETE FROM tasks") suspend fun clearTaskEntity()
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun restoreTaskEntity(items: List<TaskEntity>)
