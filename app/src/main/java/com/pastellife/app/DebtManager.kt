@@ -21,6 +21,7 @@ private fun debtMoney(value: Long) = "PKR " + java.text.NumberFormat.getNumberIn
 fun DebtManager(dao: AppDao) {
     val scope = rememberCoroutineScope()
     val contacts by dao.observeContacts().collectAsState(initial = emptyList())
+    val accounts by dao.observeAccounts().collectAsState(initial = emptyList())
     val debts by dao.observeDebts().collectAsState(initial = emptyList())
     val payments by dao.observeAllPayments().collectAsState(initial = emptyList())
     var chosenContact by remember { mutableStateOf<Long?>(null) }
@@ -33,9 +34,12 @@ fun DebtManager(dao: AppDao) {
     var paymentAmount by remember { mutableStateOf("") }
     var paymentNote by remember { mutableStateOf("") }
     var paymentMenu by remember { mutableStateOf(false) }
+    var accountMenuOpen by remember { mutableStateOf(false) }
+    var paymentAccountId by remember { mutableStateOf<Long?>(null) }
     var status by remember { mutableStateOf("") }
     val selectedContact = contacts.firstOrNull { it.id == chosenContact } ?: contacts.firstOrNull()
     val selectedDebt = debts.firstOrNull { it.id == paymentDebtId } ?: debts.firstOrNull { it.remainingAmount > 0L }
+    val paymentAccount = accounts.firstOrNull { it.id == paymentAccountId } ?: accounts.firstOrNull()
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Receivables & payables", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = DebtInk)
@@ -96,7 +100,7 @@ fun DebtManager(dao: AppDao) {
                     Text("Record partial repayment", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = DebtInk)
                     Box {
                         OutlinedButton(onClick = { paymentMenu = true }, modifier = Modifier.fillMaxWidth()) {
-                            Text(selectedDebt?.let { d0 -> (contacts.firstOrNull { it.id == d0.contactId }?.name ?: "Contact") + " — " + money(d0.remainingAmount) } ?: "Choose balance")
+                            Text(selectedDebt?.let { d0 -> (contacts.firstOrNull { it.id == d0.contactId }?.name ?: "Contact") + " — " + debtMoney(d0.remainingAmount) } ?: "Choose balance")
                         }
                         DropdownMenu(expanded = paymentMenu, onDismissRequest = { paymentMenu = false }) {
                             debts.filter { it.remainingAmount > 0L }.forEach { d0 ->
