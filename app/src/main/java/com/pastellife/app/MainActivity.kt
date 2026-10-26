@@ -149,7 +149,7 @@ class MainActivity:ComponentActivity(){
         if(t.timerStartedAt==null) dao.updateTask(t.copy(timerStartedAt=now))
         else dao.updateTask(t.copy(timerStartedAt=null,trackedSeconds=t.trackedSeconds+((now-t.timerStartedAt)/1000L).coerceAtLeast(0L)))
        }}){Text(if(t.timerStartedAt==null)"Start" else "Stop")}
-       TextButton(onClick={scope.launch{dao.deleteTask(t.id)}}){Text("Delete")}
+       TextButton(onClick={scope.launch{dao.deleteTaskAndAttachments(t.id)}}){Text("Delete")}
       }
      }}
     }
