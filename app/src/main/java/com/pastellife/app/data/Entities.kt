@@ -16,7 +16,8 @@ data class TaskEntity(
     @ColumnInfo(defaultValue = "0") val trackedSeconds: Long = 0,
     val timerStartedAt: Long? = null,
     val notes: String = "",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val projectName: String? = null
 )
 
 @Entity(tableName = "accounts")
