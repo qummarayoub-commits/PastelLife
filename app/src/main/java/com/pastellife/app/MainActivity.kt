@@ -100,7 +100,7 @@ class MainActivity:ComponentActivity(){
   },label={Text(label)})}
  }}){ pad->
   LazyColumn(Modifier.fillMaxSize().padding(pad).padding(horizontal=20.dp),contentPadding=PaddingValues(top=24.dp,bottom=28.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
-   item{Text("PastelLife",fontSize=28.sp,fontWeight=FontWeight.Bold,color=Ink);Text("A little more organised, every day.",color=Ink.copy(alpha=.65f))}
+   item{Surface(color=Color.White,shape=RoundedCornerShape(26.dp),modifier=Modifier.fillMaxWidth(),shadowElevation=2.dp){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){Surface(color=Color(0xFFE4D9FF),shape=RoundedCornerShape(18.dp),modifier=Modifier.size(54.dp)){Box(contentAlignment=Alignment.Center){Icon(Icons.Default.AutoAwesome,null,tint=Color(0xFF7655B7),modifier=Modifier.size(29.dp))}};Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){Text("PastelLife",fontSize=26.sp,fontWeight=FontWeight.ExtraBold,color=Ink);Text("Your life, beautifully organised.",fontSize=13.sp,color=Ink.copy(alpha=.68f))};Surface(color=Color(0xFFF0E9FF),shape=RoundedCornerShape(14.dp)){Icon(Icons.Default.Favorite,null,tint=Color(0xFF95647B),modifier=Modifier.padding(11.dp).size(20.dp))}}}}
    if(message.isNotBlank())item{Text(message,color=Color(0xFF397A55),fontSize=13.sp)}
    when(tab){
     "Home"->{
@@ -259,7 +259,7 @@ class MainActivity:ComponentActivity(){
      if(contacts.isEmpty())item{Hint("Add contacts here, then record receivables, payables and partial repayments below.")}
      items(contacts,key={it.id}){c->
       Column(verticalArrangement=Arrangement.spacedBy(4.dp)){
-       CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.People,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(c.name,fontWeight=FontWeight.SemiBold,color=Ink);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.65f));if(c.notes.isNotBlank())Text(c.notes,fontSize=12.sp,color=Ink.copy(alpha=.6f))};TextButton(onClick={editingContactId=c.id;editContactName=c.name;editContactPhone=c.phone;editContactNotes=c.notes}){Text("Edit")}}}
+       CardBlock(Color.White){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){AnimatedContactAvatar(c.name);Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){Text(c.name,fontWeight=FontWeight.Bold,color=Ink,fontSize=16.sp);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.72f));if(c.notes.isNotBlank())Text(c.notes,fontSize=12.sp,color=Ink.copy(alpha=.62f),maxLines=3)};TextButton(onClick={editingContactId=c.id;editContactName=c.name;editContactPhone=c.phone;editContactNotes=c.notes}){Text("Edit")}}}
        if(editingContactId==c.id) AlertDialog(
         onDismissRequest={editingContactId=null},
         title={Text("Edit contact")},
