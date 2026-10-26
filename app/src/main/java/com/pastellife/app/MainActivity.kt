@@ -81,8 +81,8 @@ class MainActivity:ComponentActivity(){
  val savings=monthIncome-monthExpenses
  val receivables=debts.filter{it.direction=="RECEIVABLE"}.sumOf{it.remainingAmount}; val payables=debts.filter{it.direction=="PAYABLE"}.sumOf{it.remainingAmount}; val netPosition=balance+receivables-payables
  Scaffold(containerColor=Canvas,bottomBar={ NavigationBar(containerColor=Color.White){
-  listOf("Home","Tasks","Finance","Contacts","Reports").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
-   Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;"Reports"->Icons.Default.Assessment;else->Icons.Default.Home},contentDescription=label)
+  listOf("Home","Tasks","Calendar","Finance","Contacts","Reports").forEach{ label-> NavigationBarItem(selected=tab==label,onClick={tab=label;message=""},icon={
+   Icon(when(label){"Tasks"->Icons.Default.TaskAlt;"Calendar"->Icons.Default.CalendarMonth;"Finance"->Icons.Default.AccountBalanceWallet;"Contacts"->Icons.Default.People;"Reports"->Icons.Default.Assessment;else->Icons.Default.Home},contentDescription=label)
   },label={Text(label)})}
  }}){ pad->
   LazyColumn(Modifier.fillMaxSize().padding(pad).padding(horizontal=20.dp),contentPadding=PaddingValues(top=24.dp,bottom=28.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
@@ -125,6 +125,18 @@ class MainActivity:ComponentActivity(){
        }}){Text(if(t.timerStartedAt==null)"Start" else "Stop")}
        TextButton(onClick={scope.launch{dao.deleteTask(t.id)}}){Text("Delete")}
       }
+     }}
+    }
+    "Calendar"->{
+     item{Text("Calendar & due dates",fontSize=22.sp,fontWeight=FontWeight.Bold,color=Ink)}
+     item{CardBlock(Blue){Text("Agenda view",fontWeight=FontWeight.SemiBold,color=Ink);Text("Tasks with due dates are listed below. Enter dates as YYYY-MM-DD when adding a task.",fontSize=12.sp,color=Ink.copy(alpha=.7f))}}
+     val scheduled=tasks.filter{it.dueDate.isNotBlank()}.sortedBy{it.dueDate}
+     if(scheduled.isEmpty()) item{Hint("No dated tasks yet. Add a due date in the Tasks tab.")}
+     items(scheduled,key={it.id}){t->CardBlock(Color.White){
+      Text(t.dueDate,fontWeight=FontWeight.SemiBold,color=Color(0xFF95647B))
+      Text(t.title,color=Ink)
+      Text((if(t.isDone)"Completed" else "Pending")+(if(t.repeatRule!="None")" • "+t.repeatRule+" repeat" else ""),fontSize=12.sp,color=Ink.copy(alpha=.65f))
+      if(!t.isDone) TextButton(onClick={scope.launch{completeTaskAndRepeat(dao,t)}}){Text("Complete")}
      }}
     }
     "Finance"->{
