@@ -76,7 +76,7 @@ private suspend fun buildBackup(dao: AppDao): String {
     root.put("tasks", JSONArray().also { a -> dao.backupTaskEntity().forEach { t -> a.put(JSONObject()
         .put("id",t.id).put("title",t.title).put("isDone",t.isDone).put("kind",t.kind).put("priority",t.priority)
         .put("dueDate",t.dueDate).put("repeatRule",t.repeatRule).put("trackedSeconds",t.trackedSeconds)
-        .put("timerStartedAt",t.timerStartedAt ?: JSONObject.NULL).put("notes",t.notes).put("createdAt",t.createdAt)) } })
+        .put("timerStartedAt",t.timerStartedAt ?: JSONObject.NULL).put("notes",t.notes).put("createdAt",t.createdAt).put("projectName",t.projectName ?: JSONObject.NULL)) } })
     root.put("accounts", JSONArray().also { a -> dao.backupAccountEntity().forEach { x -> a.put(JSONObject().put("id",x.id).put("name",x.name).put("openingBalance",x.openingBalance).put("currentBalance",x.currentBalance).put("accountType",x.accountType)) } })
     root.put("transactions", JSONArray().also { a -> dao.backupTransactionEntity().forEach { x -> a.put(JSONObject().put("id",x.id).put("accountId",x.accountId).put("amount",x.amount).put("type",x.type).put("category",x.category).put("note",x.note).put("createdAt",x.createdAt)) } })
     root.put("contacts", JSONArray().also { a -> dao.backupContactEntity().forEach { x -> a.put(JSONObject().put("id",x.id).put("name",x.name).put("phone",x.phone).put("notes",x.notes)) } })
@@ -95,7 +95,7 @@ private suspend fun restoreBackup(database: AppDatabase, root: JSONObject) {
         for (i in 0 until a.length()) a.optJSONObject(i)?.let(parse)
     }
     val tasks = mutableListOf<TaskEntity>()
-    objects("tasks") { o -> tasks += TaskEntity(o.optLong("id"),o.optString("title"),o.optBoolean("isDone"),o.optString("kind","Personal"),o.optString("priority","Medium"),o.optString("dueDate"),o.optString("repeatRule","None"),o.optLong("trackedSeconds"),if(o.isNull("timerStartedAt")) null else o.optLong("timerStartedAt"),o.optString("notes"),o.optLong("createdAt",System.currentTimeMillis())) }
+    objects("tasks") { o -> tasks += TaskEntity(o.optLong("id"),o.optString("title"),o.optBoolean("isDone"),o.optString("kind","Personal"),o.optString("priority","Medium"),o.optString("dueDate"),o.optString("repeatRule","None"),o.optLong("trackedSeconds"),if(o.isNull("timerStartedAt")) null else o.optLong("timerStartedAt"),o.optString("notes"),o.optLong("createdAt",System.currentTimeMillis()),if(o.isNull("projectName")) null else o.optString("projectName")) }
     val accounts = mutableListOf<AccountEntity>()
     objects("accounts") { o -> accounts += AccountEntity(o.optLong("id"),o.optString("name"),o.optLong("openingBalance"),o.optLong("currentBalance",o.optLong("openingBalance")),o.optString("accountType","Cash")) }
     val transactions = mutableListOf<TransactionEntity>()
