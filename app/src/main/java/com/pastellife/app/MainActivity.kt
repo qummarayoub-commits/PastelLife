@@ -150,6 +150,7 @@ class MainActivity:ComponentActivity(){
       Text("Saved locally on this phone. Cloud sync is not enabled yet.",fontSize=12.sp,color=Ink.copy(alpha=.7f))
      }}
      item{SavingsGoalsManager(dao)}
+     item{BackupManager(AppDatabase.get(context))}
      item{TransferManager(dao)}
      item{Text("Transaction history",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(transactions.isEmpty())item{Hint("No transactions recorded yet.")}
