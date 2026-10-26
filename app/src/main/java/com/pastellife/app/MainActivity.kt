@@ -58,7 +58,7 @@ class MainActivity:ComponentActivity(){
  val attachments by dao.observeTaskAttachments().collectAsState(initial= emptyList())
  val debts by dao.observeDebts().collectAsState(initial= emptyList())
  var tab by remember { mutableStateOf("Home") }; var task by remember { mutableStateOf("") }; var taskNotes by remember { mutableStateOf("") }; var projectName by remember { mutableStateOf("") }; var taskDueDate by remember { mutableStateOf("") }; var repeatRule by remember { mutableStateOf("None") }; var taskKind by remember { mutableStateOf("Personal") }; var taskPriority by remember { mutableStateOf("Medium") }
- var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var accountType by remember { mutableStateOf("Cash") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
+ var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var accountType by remember { mutableStateOf("Cash") }; var editingAccountId by remember { mutableStateOf<Long?>(null) }; var editAccountName by remember { mutableStateOf("") }; var editAccountType by remember { mutableStateOf("Cash") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
  var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }; var contactNotes by remember { mutableStateOf("") }; var editingContactId by remember { mutableStateOf<Long?>(null) }; var editContactName by remember { mutableStateOf("") }; var editContactPhone by remember { mutableStateOf("") }; var editContactNotes by remember { mutableStateOf("") }
@@ -185,7 +185,23 @@ class MainActivity:ComponentActivity(){
      item{CardBlock(Pink){Text("Available balance",color=Ink.copy(alpha=.7f));Text(money(balance),fontSize=27.sp,fontWeight=FontWeight.Bold,color=Ink);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Metric("Income",money(income),Mint,Modifier.weight(1f));Metric("Expenses",money(expenses),Yellow,Modifier.weight(1f))};Text("Net savings: "+money(savings),fontWeight=FontWeight.SemiBold,color=Ink);Text("Net financial position: "+money(netPosition),fontWeight=FontWeight.SemiBold,color=Ink)}}
      item{Text("Accounts",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(accounts.isEmpty()) item{Hint("Create your first account and enter its opening balance to start tracking finances.")}
-     items(accounts,key={it.id}){a->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.AccountBalanceWallet,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(a.name,fontWeight=FontWeight.SemiBold,color=Ink);Text(a.accountType,fontSize=12.sp,color=Ink.copy(alpha=.6f))};Text(money(a.currentBalance),fontWeight=FontWeight.Bold,color=Ink)}}}
+     items(accounts,key={it.id}){a->
+      Column(verticalArrangement=Arrangement.spacedBy(4.dp)){
+       CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.AccountBalanceWallet,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(a.name,fontWeight=FontWeight.SemiBold,color=Ink);Text(a.accountType,fontSize=12.sp,color=Ink.copy(alpha=.6f))};Column(horizontalAlignment=Alignment.End){Text(money(a.currentBalance),fontWeight=FontWeight.Bold,color=Ink);TextButton(onClick={editingAccountId=a.id;editAccountName=a.name;editAccountType=a.accountType}){Text("Edit")}}}}
+       if(editingAccountId==a.id) AlertDialog(
+        onDismissRequest={editingAccountId=null},
+        title={Text("Edit account")},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
+         OutlinedTextField(value=editAccountName,onValueChange={editAccountName=it},label={Text("Account name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+         Text("Account type",color=Ink)
+         Row(horizontalArrangement=Arrangement.spacedBy(4.dp)){listOf("Cash","Bank","Mobile wallet","Custom").forEach{kind->FilterChip(selected=editAccountType==kind,onClick={editAccountType=kind},label={Text(kind)})}}
+         Text("Opening and current balances are kept unchanged.",fontSize=12.sp,color=Ink.copy(alpha=.65f))
+        }},
+        confirmButton={TextButton(onClick={val name=editAccountName.trim();if(name.isBlank())message="Account name cannot be empty." else scope.launch{dao.updateAccount(a.copy(name=name,accountType=editAccountType));editingAccountId=null;message="Account updated."}}){Text("Save changes")}},
+        dismissButton={TextButton(onClick={editingAccountId=null}){Text("Cancel")}}
+       )
+      }
+     }
      item{CardBlock(Blue){Text("Add account",fontSize=18.sp,fontWeight=FontWeight.SemiBold,color=Ink)
       OutlinedTextField(value=accountName,onValueChange={accountName=it},label={Text("Account name")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=opening,onValueChange={opening=it.filter{c->c.isDigit()}},label={Text("Opening balance (PKR)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
