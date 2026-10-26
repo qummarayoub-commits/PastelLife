@@ -114,6 +114,7 @@ class MainActivity:ComponentActivity(){
      }}
      if(contacts.isEmpty())item{Hint("Contacts are stored locally. Receivables and payables are planned next.")}
      items(contacts,key={it.id}){c->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.People,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column{Text(c.name,fontWeight=FontWeight.SemiBold,color=Ink);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.65f))}}}}
+     item { DebtManager(dao) }
     }
    }
   }
