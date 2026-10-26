@@ -1,5 +1,13 @@
 package com.pastellife.app
 import android.os.Bundle
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -21,6 +29,8 @@ import com.pastellife.app.data.*
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 private val Canvas=Color(0xFFFFFAF7); private val Ink=Color(0xFF33313A)
 private val Pink=Color(0xFFF8DDE5); private val Mint=Color(0xFFDDF2E7)
@@ -45,7 +55,18 @@ class MainActivity:ComponentActivity(){
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
  var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }
  var message by remember { mutableStateOf("") }
- LaunchedEffect(Unit){ if(dao.countAccounts()==0) dao.addAccount(AccountEntity(name="Cash",openingBalance=0)) }
+ val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+ LaunchedEffect(Unit){
+  if(dao.countAccounts()==0) dao.addAccount(AccountEntity(name="Cash",openingBalance=0))
+  if(Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+   notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+  }
+  val now = System.currentTimeMillis()
+  val next = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY,9); set(Calendar.MINUTE,0); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0); if(timeInMillis <= now) add(Calendar.DAY_OF_YEAR,1) }
+  val delay = (next.timeInMillis - now).coerceAtLeast(0L)
+  val request = PeriodicWorkRequestBuilder<DailyTaskReminderWorker>(24,TimeUnit.HOURS).setInitialDelay(delay,TimeUnit.MILLISECONDS).build()
+  WorkManager.getInstance(context).enqueueUniquePeriodicWork("pastellife-daily-reminder",ExistingPeriodicWorkPolicy.UPDATE,request)
+ }
  val balance=accounts.sumOf{it.currentBalance}; val income=transactions.filter{it.type=="Income"}.sumOf{it.amount}
  val expenses=transactions.filter{it.type=="Expense"}.sumOf{it.amount}; val savings=income-expenses
  val receivables=debts.filter{it.direction=="RECEIVABLE"}.sumOf{it.remainingAmount}; val payables=debts.filter{it.direction=="PAYABLE"}.sumOf{it.remainingAmount}; val netPosition=balance+receivables-payables
