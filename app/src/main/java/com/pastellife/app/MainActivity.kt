@@ -1,6 +1,7 @@
 package com.pastellife.app
 import android.os.Bundle
 import android.content.Intent
+import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.Manifest
@@ -108,7 +109,7 @@ class MainActivity:ComponentActivity(){
      item{Metric("Net financial position",money(netPosition),Blue,Modifier.fillMaxWidth())}
      item{Text("Today's focus",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(tasks.none{!it.isDone})item{Hint("No tasks yet. Add your first task in Tasks.")}
-     items(tasks.filter{!it.isDone}.take(5),key={it.id}){t->TaskLine(t.title){scope.launch{completeTaskAndRepeat(dao,t)}}}
+     items(tasks.filter{!it.isDone}.take(5),key={it.id}){t->TaskLine(t.title){scope.launch{completeTaskAndRepeat(context,dao,t)}}}
      item{Text("Recent transactions",fontSize=20.sp,fontWeight=FontWeight.SemiBold,color=Ink)}
      if(transactions.isEmpty())item{Hint("Your income and expenses will appear here.")}
      items(transactions.take(4),key={it.id}){TxLine(it)}
@@ -126,11 +127,11 @@ class MainActivity:ComponentActivity(){
       Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("Low","Medium","High").forEach{priority->FilterChip(selected=taskPriority==priority,onClick={taskPriority=priority},label={Text(priority)})}}
       Text("Repeat",color=Ink,fontWeight=FontWeight.Medium)
       Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){listOf("None","Daily","Weekly").forEach{rule->FilterChip(selected=repeatRule==rule,onClick={repeatRule=rule},label={Text(rule)})}}
-      Button(onClick={if(task.isNotBlank()){val title=task.trim();scope.launch{dao.addTask(TaskEntity(title=title,kind=taskKind,priority=taskPriority,dueDate=taskDueDate.trim(),repeatRule=repeatRule,notes=taskNotes.trim(),projectName=if(taskKind=="Project") projectName.trim().ifBlank{null} else null));task="";taskNotes="";projectName="";taskDueDate="";repeatRule="None";taskKind="Personal";taskPriority="Medium";message="Task saved on this device."}}else message="Enter a task first."},modifier=Modifier.fillMaxWidth()){Text("Add task")}
+      Button(onClick={if(task.isNotBlank()){val title=task.trim();scope.launch{val taskId=dao.addTask(TaskEntity(title=title,kind=taskKind,priority=taskPriority,dueDate=taskDueDate.trim(),repeatRule=repeatRule,notes=taskNotes.trim(),projectName=if(taskKind=="Project") projectName.trim().ifBlank{null} else null));TaskReminderScheduler.schedule(context,taskId,title,taskDueDate.trim());task="";taskNotes="";projectName="";taskDueDate="";repeatRule="None";taskKind="Personal";taskPriority="Medium";message="Task saved on this device."}}else message="Enter a task first."},modifier=Modifier.fillMaxWidth()){Text("Add task")}
      }}
      if(tasks.isEmpty())item{Hint("Your task list is empty.")}
      items(tasks,key={it.id}){t->Surface(color=Color.White,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
-      Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=t.isDone,onCheckedChange={v->scope.launch{if(v) completeTaskAndRepeat(dao,t) else dao.updateTask(t.copy(isDone=false))}})
+      Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically){Checkbox(checked=t.isDone,onCheckedChange={v->scope.launch{if(v) completeTaskAndRepeat(dao,t) else {dao.updateTask(t.copy(isDone=false));TaskReminderScheduler.schedule(context,t.id,t.title,t.dueDate)}}})
        Column(Modifier.weight(1f)){
         Text(t.title,color=Ink,fontWeight=FontWeight.Medium)
         if(t.notes.isNotBlank()) Text(t.notes,fontSize=12.sp,color=Ink.copy(alpha=.65f))
@@ -152,7 +153,7 @@ class MainActivity:ComponentActivity(){
         if(t.timerStartedAt==null) dao.updateTask(t.copy(timerStartedAt=now))
         else dao.updateTask(t.copy(timerStartedAt=null,trackedSeconds=t.trackedSeconds+((now-t.timerStartedAt)/1000L).coerceAtLeast(0L)))
        }}){Text(if(t.timerStartedAt==null)"Start" else "Stop")}
-       TextButton(onClick={scope.launch{dao.deleteTaskAndAttachments(t.id)}}){Text("Delete")}
+       TextButton(onClick={scope.launch{TaskReminderScheduler.cancel(context,t.id);dao.deleteTaskAndAttachments(t.id)}}){Text("Delete")}
       }
       if(editingTaskId==t.id) AlertDialog(
        onDismissRequest={editingTaskId=null},
@@ -162,7 +163,7 @@ class MainActivity:ComponentActivity(){
         OutlinedTextField(value=editTaskNotes,onValueChange={editTaskNotes=it},label={Text("Notes")},modifier=Modifier.fillMaxWidth(),minLines=2)
         OutlinedTextField(value=editTaskDueDate,onValueChange={editTaskDueDate=it},label={Text("Due date (YYYY-MM-DD)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
        }},
-       confirmButton={TextButton(onClick={val title=editTaskTitle.trim();if(title.isBlank())message="Task title cannot be empty." else scope.launch{dao.updateTask(t.copy(title=title,notes=editTaskNotes.trim(),dueDate=editTaskDueDate.trim()));editingTaskId=null;message="Task updated."}}){Text("Save changes")}},
+       confirmButton={TextButton(onClick={val title=editTaskTitle.trim();if(title.isBlank())message="Task title cannot be empty." else scope.launch{dao.updateTask(t.copy(title=title,notes=editTaskNotes.trim(),dueDate=editTaskDueDate.trim()));TaskReminderScheduler.schedule(context,t.id,title,editTaskDueDate.trim());editingTaskId=null;message="Task updated."}}){Text("Save changes")}},
        dismissButton={TextButton(onClick={editingTaskId=null}){Text("Cancel")}}
       )
      }}
@@ -248,16 +249,18 @@ class MainActivity:ComponentActivity(){
  }
 }
 private fun durationLabel(seconds: Long): String { val hours=seconds/3600; val minutes=(seconds%3600)/60; val secs=seconds%60; return if(hours>0) "${hours}h ${minutes}m" else if(minutes>0) "${minutes}m ${secs}s" else "${secs}s" }
-private suspend fun completeTaskAndRepeat(dao: AppDao, task: TaskEntity) {
+private suspend fun completeTaskAndRepeat(context: Context, dao: AppDao, task: TaskEntity) {
  val now = System.currentTimeMillis()
  val finishedSeconds = task.trackedSeconds + if(task.timerStartedAt != null) ((now-task.timerStartedAt)/1000L).coerceAtLeast(0L) else 0L
  dao.updateTask(task.copy(isDone=true,timerStartedAt=null,trackedSeconds=finishedSeconds))
+ TaskReminderScheduler.cancel(context, task.id)
  if(task.repeatRule!="None") {
   val cal=Calendar.getInstance()
   if(task.dueDate.isNotBlank()) { val parsed=runCatching { SimpleDateFormat("yyyy-MM-dd",Locale.US).parse(task.dueDate) }.getOrNull(); if(parsed!=null && parsed.time>now) cal.time=parsed }
   cal.add(Calendar.DAY_OF_YEAR,if(task.repeatRule=="Daily") 1 else 7)
   val nextDate=SimpleDateFormat("yyyy-MM-dd",Locale.US).format(cal.time)
-  dao.addTask(task.copy(id=0,isDone=false,dueDate=nextDate,trackedSeconds=0,timerStartedAt=null,createdAt=now))
+  val nextId = dao.addTask(task.copy(id=0,isDone=false,dueDate=nextDate,trackedSeconds=0,timerStartedAt=null,createdAt=now))
+  TaskReminderScheduler.schedule(context, nextId, task.title, nextDate)
  }
 }
 @Composable private fun CardBlock(color:Color,content:@Composable ColumnScope.()->Unit){Surface(color=color,shape=RoundedCornerShape(22.dp),modifier=Modifier.fillMaxWidth()){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp),content=content)}}
