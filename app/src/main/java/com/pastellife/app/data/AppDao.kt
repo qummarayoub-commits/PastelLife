@@ -15,6 +15,12 @@ interface AppDao {
     @Insert suspend fun addTask(task: TaskEntity): Long
     @Update suspend fun updateTask(task: TaskEntity)
     @Query("DELETE FROM tasks WHERE id = :id") suspend fun deleteTask(id: Long)
+    @Query("DELETE FROM task_attachments WHERE taskId = :taskId") suspend fun deleteTaskAttachmentsForTask(taskId: Long)
+    @Transaction
+    suspend fun deleteTaskAndAttachments(id: Long) {
+        deleteTaskAttachmentsForTask(id)
+        deleteTask(id)
+    }
 
     @Query("SELECT * FROM accounts ORDER BY id ASC")
     fun observeAccounts(): Flow<List<AccountEntity>>
@@ -75,6 +81,7 @@ interface AppDao {
     @Query("SELECT * FROM task_attachments ORDER BY addedAt DESC") fun observeTaskAttachments(): Flow<List<TaskAttachmentEntity>>
     @Insert suspend fun addTaskAttachment(attachment: TaskAttachmentEntity): Long
     @Query("DELETE FROM task_attachments WHERE id = :id") suspend fun deleteTaskAttachment(id: Long)
+    @Query("DELETE FROM task_attachments") suspend fun clearTaskAttachments()
 
     @Query("SELECT * FROM tasks") suspend fun backupTaskEntity(): List<TaskEntity>
     @Query("DELETE FROM tasks") suspend fun clearTaskEntity()
