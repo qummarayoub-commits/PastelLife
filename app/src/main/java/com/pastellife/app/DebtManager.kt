@@ -111,8 +111,10 @@ fun DebtManager(dao: AppDao) {
                         val value = paymentAmount.toLongOrNull()
                         if (target == null || value == null || value <= 0L || value > target.remainingAmount) status = "Enter a payment up to the remaining balance."
                         else scope.launch {
-                            dao.addDebtPayment(DebtPaymentEntity(debtId = target.id, amount = value, direction = if (target.direction == "RECEIVABLE") "RECEIVED" else "PAID", note = paymentNote.trim()))
-                            dao.updateDebt(target.copy(remainingAmount = target.remainingAmount - value))
+                            dao.recordDebtPaymentAndBalance(
+                                DebtPaymentEntity(debtId = target.id, amount = value, direction = if (target.direction == "RECEIVABLE") "RECEIVED" else "PAID", note = paymentNote.trim()),
+                                target.copy(remainingAmount = target.remainingAmount - value)
+                            )
                             paymentAmount = ""; paymentNote = ""; status = "Repayment saved to history."
                         }
                     }, modifier = Modifier.fillMaxWidth()) { Text("Save repayment") }
