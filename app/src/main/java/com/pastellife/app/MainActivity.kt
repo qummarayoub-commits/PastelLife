@@ -215,7 +215,7 @@ private suspend fun completeTaskAndRepeat(dao: AppDao, task: TaskEntity) {
  dao.updateTask(task.copy(isDone=true,timerStartedAt=null,trackedSeconds=finishedSeconds))
  if(task.repeatRule!="None") {
   val cal=Calendar.getInstance()
-  if(task.dueDate.isNotBlank()) runCatching { SimpleDateFormat("yyyy-MM-dd",Locale.US).parse(task.dueDate) }.getOrNull()?.let { cal.time=it }
+  if(task.dueDate.isNotBlank()) { val parsed=runCatching { SimpleDateFormat("yyyy-MM-dd",Locale.US).parse(task.dueDate) }.getOrNull(); if(parsed!=null && parsed.time>now) cal.time=parsed }
   cal.add(Calendar.DAY_OF_YEAR,if(task.repeatRule=="Daily") 1 else 7)
   val nextDate=SimpleDateFormat("yyyy-MM-dd",Locale.US).format(cal.time)
   dao.addTask(task.copy(id=0,isDone=false,dueDate=nextDate,trackedSeconds=0,timerStartedAt=null,createdAt=now))
