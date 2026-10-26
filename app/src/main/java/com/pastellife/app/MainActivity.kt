@@ -14,6 +14,8 @@ import androidx.work.WorkManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,7 +61,7 @@ class MainActivity:ComponentActivity(){
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
  var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }
- var message by remember { mutableStateOf("") }; var attachmentTaskId by remember { mutableStateOf<Long?>(null) }
+ var message by remember { mutableStateOf("") }; var attachmentTaskId by remember { mutableStateOf<Long?>(null) }; var editingTaskId by remember { mutableStateOf<Long?>(null) }; var editTaskTitle by remember { mutableStateOf("") }; var editTaskNotes by remember { mutableStateOf("") }; var editTaskDueDate by remember { mutableStateOf("") }
  val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
  val attachmentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
   if(uri != null && attachmentTaskId != null) {
@@ -152,6 +154,17 @@ class MainActivity:ComponentActivity(){
        }}){Text(if(t.timerStartedAt==null)"Start" else "Stop")}
        TextButton(onClick={scope.launch{dao.deleteTaskAndAttachments(t.id)}}){Text("Delete")}
       }
+      if(editingTaskId==t.id) AlertDialog(
+       onDismissRequest={editingTaskId=null},
+       title={Text("Edit task")},
+       text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)){
+        OutlinedTextField(value=editTaskTitle,onValueChange={editTaskTitle=it},label={Text("Task title")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+        OutlinedTextField(value=editTaskNotes,onValueChange={editTaskNotes=it},label={Text("Notes")},modifier=Modifier.fillMaxWidth(),minLines=2)
+        OutlinedTextField(value=editTaskDueDate,onValueChange={editTaskDueDate=it},label={Text("Due date (YYYY-MM-DD)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+       }},
+       confirmButton={TextButton(onClick={val title=editTaskTitle.trim();if(title.isBlank())message="Task title cannot be empty." else scope.launch{dao.updateTask(t.copy(title=title,notes=editTaskNotes.trim(),dueDate=editTaskDueDate.trim()));editingTaskId=null;message="Task updated."}}){Text("Save changes")}},
+       dismissButton={TextButton(onClick={editingTaskId=null}){Text("Cancel")}}
+      )
      }}
     }
     "Calendar"->{
