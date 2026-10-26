@@ -60,7 +60,7 @@ class MainActivity:ComponentActivity(){
  var accountName by remember { mutableStateOf("") }; var opening by remember { mutableStateOf("") }; var accountType by remember { mutableStateOf("Cash") }; var selectedAccountId by remember { mutableStateOf<Long?>(null) }; var accountMenuOpen by remember { mutableStateOf(false) }
  var amount by remember { mutableStateOf("") }; var category by remember { mutableStateOf("General") }
  var note by remember { mutableStateOf("") }; var txType by remember { mutableStateOf("Expense") }
- var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }
+ var contact by remember { mutableStateOf("") }; var phone by remember { mutableStateOf("") }; var contactNotes by remember { mutableStateOf("") }
  var message by remember { mutableStateOf("") }; var attachmentTaskId by remember { mutableStateOf<Long?>(null) }; var editingTaskId by remember { mutableStateOf<Long?>(null) }; var editTaskTitle by remember { mutableStateOf("") }; var editTaskNotes by remember { mutableStateOf("") }; var editTaskDueDate by remember { mutableStateOf("") }
  val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
  val attachmentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -239,7 +239,7 @@ class MainActivity:ComponentActivity(){
       Button(onClick={if(contact.isNotBlank())scope.launch{dao.addContact(ContactEntity(name=contact.trim(),phone=phone.trim()));contact="";phone="";message="Contact saved."}else message="Please enter a contact name."},modifier=Modifier.fillMaxWidth()){Text("Save contact")}
      }}
      if(contacts.isEmpty())item{Hint("Contacts are stored locally. Receivables and payables are planned next.")}
-     items(contacts,key={it.id}){c->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.People,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column{Text(c.name,fontWeight=FontWeight.SemiBold,color=Ink);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.65f))}}}}
+     items(contacts,key={it.id}){c->CardBlock(Color.White){Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.People,null,tint=Color(0xFF95647B));Spacer(Modifier.width(10.dp));Column{Text(c.name,fontWeight=FontWeight.SemiBold,color=Ink);if(c.phone.isNotBlank())Text(c.phone,fontSize=13.sp,color=Ink.copy(alpha=.65f));if(c.notes.isNotBlank())Text(c.notes,fontSize=12.sp,color=Ink.copy(alpha=.6f))}}}}
      item { DebtManager(dao) }
     }
    }
