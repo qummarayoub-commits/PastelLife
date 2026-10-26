@@ -21,6 +21,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+          cache: gradle
       - name: Install Gradle
         run: |
           curl -fsSL --retry 3 -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.9-bin.zip
