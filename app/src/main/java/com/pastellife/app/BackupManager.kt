@@ -24,6 +24,7 @@ fun BackupManager(database: AppDatabase) {
     val dao = remember { database.appDao() }
     val scope = rememberCoroutineScope()
     var status by remember { mutableStateOf("") }
+    var confirmRestore by remember { mutableStateOf(false) }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) scope.launch {
@@ -55,8 +56,17 @@ fun BackupManager(database: AppDatabase) {
             Text("Backup & restore", style = MaterialTheme.typography.titleMedium, color = Color(0xFF33313A))
             Text("Export a copy of your local data as a JSON file, or restore a backup. Restoring replaces the data currently on this device.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF55515E))
             Button(onClick = { exportLauncher.launch("pastellife-backup.json") }, modifier = Modifier.fillMaxWidth()) { Text("Export backup") }
-            OutlinedButton(onClick = { importLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) }, modifier = Modifier.fillMaxWidth()) { Text("Restore backup") }
+            OutlinedButton(onClick = { confirmRestore = true }, modifier = Modifier.fillMaxWidth()) { Text("Restore backup") }
             if (status.isNotBlank()) Text(status, color = Color(0xFF397A55), style = MaterialTheme.typography.bodySmall)
+            if (confirmRestore) {
+                AlertDialog(
+                    onDismissRequest = { confirmRestore = false },
+                    title = { Text("Replace current data?") },
+                    text = { Text("Restoring a backup replaces all tasks, accounts, transactions, contacts, debts and savings goals on this phone. Export a backup first if you need to keep the current data.") },
+                    confirmButton = { TextButton(onClick = { confirmRestore = false; importLauncher.launch(arrayOf("application/json", "text/json", "text/plain")) }) { Text("Continue") } },
+                    dismissButton = { TextButton(onClick = { confirmRestore = false }) { Text("Cancel") } }
+                )
+            }
         }
     }
 }
