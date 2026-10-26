@@ -7,10 +7,10 @@ PastelLife is an early Android personal task and finance manager built with Kotl
 - Persistent tasks with Personal/Work/Project categories, priority, due dates, editable title/notes/due date, local file attachments, daily/weekly recurrence and time tracking
 - Calendar-style agenda for dated tasks
 - Daily unfinished-task notification and per-task due-date reminders targeted for 9 AM local time (Android may defer background work; notifications require permission)
-- Multiple accounts with manually entered opening balances
+- Multiple accounts with manually entered opening balances; account names and types can be edited without changing balances
 - Income and expense entries, selected account and transaction history
 - Transfers between own accounts, excluded from income/expense totals
-- Contacts, receivables/payables, partial repayments and repayment history
+- Editable contacts with notes, receivables/payables, partial repayments and repayment history
 - Savings goals, target dates, progress and contributions
 - Weekly/monthly summaries and finance calculation unit tests
 - JSON export and restore of local app data, with confirmation before replacing current data (file attachment links and contents are not included)
