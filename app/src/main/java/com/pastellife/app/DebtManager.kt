@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 private val DebtInk = Color(0xFF33313A)
 private val DebtMint = Color(0xFFDDF2E7)
 private val DebtBlue = Color(0xFFDDEBFA)
+private fun debtMoney(value: Long) = "PKR " + java.text.NumberFormat.getNumberInstance(java.util.Locale("en", "PK")).format(value)
 
 @Composable
 fun DebtManager(dao: AppDao) {
@@ -82,7 +83,7 @@ fun DebtManager(dao: AppDao) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(person, fontWeight = FontWeight.SemiBold, color = DebtInk)
                     Text(if (debt.direction == "RECEIVABLE") "They owe you" else "You owe them", fontSize = 12.sp, color = DebtInk.copy(alpha=.65f))
-                    Text("Remaining: " + money(debt.remainingAmount), fontWeight = FontWeight.Bold, color = DebtInk)
+                    Text("Remaining: " + debtMoney(debt.remainingAmount), fontWeight = FontWeight.Bold, color = DebtInk)
                     if (debt.dueDate.isNotBlank()) Text("Due: " + debt.dueDate, fontSize = 12.sp, color = DebtInk.copy(alpha=.65f))
                     if (debt.note.isNotBlank()) Text(debt.note, fontSize = 12.sp, color = DebtInk.copy(alpha=.65f))
                 }
