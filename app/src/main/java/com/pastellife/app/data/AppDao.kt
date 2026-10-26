@@ -49,6 +49,7 @@ interface AppDao {
     @Query("SELECT * FROM contacts ORDER BY name COLLATE NOCASE ASC")
     fun observeContacts(): Flow<List<ContactEntity>>
     @Insert suspend fun addContact(contact: ContactEntity): Long
+    @Update suspend fun updateContact(contact: ContactEntity)
 
     @Query("SELECT * FROM debts ORDER BY id DESC")
     fun observeDebts(): Flow<List<DebtEntity>>
