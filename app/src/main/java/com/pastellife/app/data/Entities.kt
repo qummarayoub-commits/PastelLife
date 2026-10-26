@@ -11,6 +11,7 @@ data class TaskEntity(
     val kind: String = "Personal",
     val priority: String = "Medium",
     val dueDate: String = "",
+    val repeatRule: String = "None",
     val notes: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
