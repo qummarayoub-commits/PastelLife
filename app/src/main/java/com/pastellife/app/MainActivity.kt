@@ -165,8 +165,10 @@ class MainActivity:ComponentActivity(){
       OutlinedTextField(value=category,onValueChange={category=it},label={Text("Category")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       OutlinedTextField(value=note,onValueChange={note=it},label={Text("Note (optional)")},modifier=Modifier.fillMaxWidth(),singleLine=true)
       Button(onClick={val v=amount.toLongOrNull();val a=accounts.firstOrNull{it.id==selectedAccountId} ?: accounts.firstOrNull();when{v==null||v<=0L||a==null->message="Enter a positive amount and ensure an account exists.";txType=="Expense"&&a.currentBalance<v->message="Insufficient balance in the first account.";else->scope.launch{
-       dao.addTransaction(TransactionEntity(accountId=a!!.id,amount=v!!,type=txType,category=category.ifBlank{"General"}.trim(),note=note.trim()))
-       dao.updateAccount(a.copy(currentBalance=a.currentBalance+(if(txType=="Income")v else -v)))
+       dao.recordTransactionAndBalance(
+        TransactionEntity(accountId=a!!.id,amount=v!!,type=txType,category=category.ifBlank{"General"}.trim(),note=note.trim()),
+        a.copy(currentBalance=a.currentBalance+(if(txType=="Income")v else -v))
+       )
        amount="";note="";message=txType+" saved."
       }}},modifier=Modifier.fillMaxWidth()){Text("Save transaction")}
       Text("Saved locally on this phone. Cloud sync is not enabled yet.",fontSize=12.sp,color=Ink.copy(alpha=.7f))
