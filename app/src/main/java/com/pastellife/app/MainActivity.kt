@@ -147,6 +147,7 @@ class MainActivity:ComponentActivity(){
          }
         }
        }
+       TextButton(onClick={editingTaskId=t.id;editTaskTitle=t.title;editTaskNotes=t.notes;editTaskDueDate=t.dueDate}){Text("Edit")}
        TextButton(onClick={scope.launch{
         val now=System.currentTimeMillis()
         if(t.timerStartedAt==null) dao.updateTask(t.copy(timerStartedAt=now))
